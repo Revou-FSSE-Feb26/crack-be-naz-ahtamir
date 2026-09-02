@@ -1,0 +1,304 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ── Enums ─────────────────────────────────────────────────
+
+enum Role {
+  admin
+  supervisor
+  user
+}
+
+enum FindingStatus {
+  INPG
+  CLSD
+}
+
+enum NotificationType {
+  finding_submitted
+  approval_required
+  finding_approved
+  finding_rejected
+}
+
+enum ApprovalStatus {
+  ACC
+  TACC
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+}
+
+// ── User ──────────────────────────────────────────────────
+
+model User {
+  id           String   @id @default(uuid())
+  idKaryawan   String   @unique @map("id_karyawan")
+  email        String?
+  nama         String
+  jabatan      String?
+  departemen   String?
+  divisi       String?
+  pusat        String?
+  perusahaan   String?
+  password     String
+
+  role         Role     @default(user)
+  approved     Boolean  @default(true)
+
+  // Hirarki supervisor — admin assign manual
+  supervisorId String?  @map("supervisor_id")
+  supervisor   User?    @relation("SupervisorBawahan", fields: [supervisorId], references: [id])
+  bawahan      User[]   @relation("SupervisorBawahan")
+
+  // Data personal
+  tanggalLahir      DateTime? @map("tanggal_lahir")
+  tempatLahir       String?   @map("tempat_lahir")
+  agama             String?
+  jenisKelamin      String?   @map("jenis_kelamin")
+  pendidikan        String?
+  namaSekolah       String?   @map("nama_sekolah")
+  jurusan           String?
+
+  // Tanggal mulai kerja — umur & masa kerja dihitung otomatis dari ini
+  tanggalMulaiKerja DateTime? @map("tanggal_mulai_kerja")
+
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt      @map("updated_at")
+
+  // Relasi
+  findings           Finding[]      @relation("FindingCreator")
+  approvals          Finding[]      @relation("FindingApprover")
+  pics               Finding[]      @relation("FindingPIC")
+  notifications      Notification[]
+  auditLogs          AuditLog[]
+  k3PoliciesCreated  K3Policy[]     @relation("K3PolicyCreatedBy")
+  k3PoliciesUpdated  K3Policy[]     @relation("K3PolicyUpdatedBy")
+  documentsCreated   Document[]     @relation("DocumentCreatedBy")
+
+  @@map("users")
+}
+
+// ── Finding ───────────────────────────────────────────────
+
+model Finding {
+  id             String        @id @default(uuid())
+  subElementId   String        @map("sub_element_id")
+  title          String
+  findingStatus  FindingStatus @default(INPG) @map("finding_status")
+
+  // Data form fleksibel — berbeda tiap sub-elemen
+  data           Json          @default("{}")
+
+  // File uploads
+  files          FindingFile[]
+
+  // Pembuat temuan
+  createdById    String   @map("created_by_id")
+  createdBy      User     @relation("FindingCreator", fields: [createdById], references: [id])
+  createdByName  String   @map("created_by_name")
+
+  // Approval (supervisor/admin yang approve)
+  approvedById   String?  @map("approved_by_id")
+  approvedBy     User?    @relation("FindingApprover", fields: [approvedById], references: [id])
+  approvedByName String?  @map("approved_by_name")
+  approvedAt     DateTime? @map("approved_at")
+  approvalNote   String?  @map("approval_note")
+  approvalStatus ApprovalStatus? @map("approval_status")
+
+  // PIC untuk INPG follow up
+  picId          String?  @map("pic_id")
+  pic            User?    @relation("FindingPIC", fields: [picId], references: [id])
+  followUpNote   String?  @map("follow_up_note")
+  followUpDeadline DateTime? @map("follow_up_deadline")
+
+  // Close (CLSD)
+  closedAt       DateTime? @map("closed_at")
+  closedById     String?   @map("closed_by_id")
+  closedByName   String?   @map("closed_by_name")
+
+  // Soft delete
+  deletedAt      DateTime? @map("deleted_at")
+
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt      @map("updated_at")
+
+  notifications  Notification[]
+  auditLogs      AuditLog[]
+
+  @@map("findings")
+}
+
+// ── Finding File ──────────────────────────────────────────
+
+model FindingFile {
+  id          String   @id @default(uuid())
+  findingId   String   @map("finding_id")
+  finding     Finding  @relation(fields: [findingId], references: [id], onDelete: Cascade)
+
+  fieldName   String   @map("field_name")
+  fileName    String   @map("file_name")
+  fileUrl     String   @map("file_url")
+  fileSize    Int      @map("file_size")
+  mimeType    String?  @map("mime_type")
+
+  uploadedAt  DateTime @default(now()) @map("uploaded_at")
+
+  @@map("finding_files")
+}
+
+// ── Notification ──────────────────────────────────────────
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String           @map("user_id")
+  user      User             @relation(fields: [userId], references: [id])
+
+  type      NotificationType
+  title     String
+  message   String
+  isRead    Boolean          @default(false) @map("is_read")
+
+  findingId String?          @map("finding_id")
+  finding   Finding?         @relation(fields: [findingId], references: [id])
+
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  @@map("notifications")
+}
+
+// ── Audit Log ─────────────────────────────────────────────
+
+model AuditLog {
+  id         String      @id @default(uuid())
+  tableName  String      @map("table_name")
+  recordId   String      @map("record_id")
+  action     AuditAction
+  changes    Json?
+
+  userId     String      @map("user_id")
+  user       User        @relation(fields: [userId], references: [id])
+
+  findingId  String?     @map("finding_id")
+  finding    Finding?    @relation(fields: [findingId], references: [id])
+
+  timestamp  DateTime    @default(now())
+
+  @@map("audit_logs")
+}
+
+// ── Department ────────────────────────────────────────────
+
+model Department {
+  id        String   @id @default(uuid())
+  name      String
+  code      String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt      @map("updated_at")
+
+  documents Document[]
+
+  @@map("departments")
+}
+
+// ── Document (Master List) ────────────────────────────────
+
+enum JenisDokumen {
+  MANUAL
+  SOP
+  INSTRUKSI_KERJA
+  FORMULIR
+}
+
+enum StatusDokumen {
+  ASLI
+  SALINAN
+  ASLI_REVISI  @map("ASLI-REVISI")
+  SALINAN_REVISI @map("SALINAN-REVISI")
+}
+
+enum StatusDistribusi {
+  TERKENDALI
+  TIDAK_TERKENDALI
+}
+
+enum StatusValidasi {
+  BERLAKU
+  TIDAK_BERLAKU
+  PEMUSNAHAN
+}
+
+model Document {
+  id                String           @id @default(uuid())
+
+  // Departemen pemilik dokumen
+  departemenId      String           @map("departemen_id")
+  departemen        Department       @relation(fields: [departemenId], references: [id])
+
+  // Hierarki: Manual → SOP → IK → Formulir
+  jenisDokumen      JenisDokumen     @map("jenis_dokumen")
+
+  namaDokumen       String           @map("nama_dokumen")
+  nomorDokumen      String           @map("nomor_dokumen")
+  revisi            String?          @default("00")
+
+  tanggalTerbit     DateTime         @map("tanggal_terbit")
+
+  statusDokumen     StatusDokumen    @map("status_dokumen")
+  statusDistribusi  StatusDistribusi @map("status_distribusi")
+  statusValidasi    StatusValidasi   @map("status_validasi")
+
+  // Self-reference untuk tree
+  parentId          String?          @map("parent_id")
+  parent            Document?        @relation("DocumentHierarchy", fields: [parentId], references: [id])
+  children          Document[]       @relation("DocumentHierarchy")
+
+  // File opsional
+  fileUrl           String?          @map("file_url")
+
+  // Audit
+  createdById       String           @map("created_by_id")
+  createdBy         User             @relation("DocumentCreatedBy", fields: [createdById], references: [id])
+  createdAt         DateTime         @default(now()) @map("created_at")
+  updatedAt         DateTime         @updatedAt      @map("updated_at")
+
+  @@map("documents")
+}
+
+// ── K3 Policy ─────────────────────────────────────────────
+
+model K3Policy {
+  id                String   @id @default(uuid())
+  
+  // ── Field sesuai config ──
+  jenisKebijakan    String   @map("jenis_kebijakan")   // UMUM / KHUSUS
+  judulKebijakan    String   @map("judul_kebijakan")
+  tanggalPenetapan  DateTime @map("tanggal_penetapan")
+  penandatangan     String
+  jabatan           String
+  
+  statusDokumen     String   @map("status_dokumen")    // ASLI / SALINAN / ASLI-REVISI / SALINAN-REVISI
+  statusDistribusi  String?  @map("status_distribusi") // TERKENDALI / TIDAK TERKENDALI
+  statusValidasi    String?  @map("status_validasi")   // BERLAKU / TIDAK BERLAKU / PEMUSNAHAN
+  
+  fileUrl           String?  @map("file_url")          // Path file PDF
+
+  // ── Audit ──
+  createdById       String   @map("created_by_id")
+  createdBy         User     @relation("K3PolicyCreatedBy", fields: [createdById], references: [id])
+  createdAt         DateTime @default(now()) @map("created_at")
+  
+  updatedById       String?  @map("updated_by_id")
+  updatedBy         User?    @relation("K3PolicyUpdatedBy", fields: [updatedById], references: [id])
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  @@map("k3_policies")
+}
