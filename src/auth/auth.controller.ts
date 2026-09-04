@@ -24,6 +24,13 @@ export class AuthController {
     return this.authService.getAllUsers();
   }
 
+  // Lookup user by idKaryawan — dipakai form license-certification
+  @UseGuards(JwtAuthGuard)
+  @Get('users/by-id-karyawan/:idKaryawan')
+  async getUserByIdKaryawan(@Param('idKaryawan') idKaryawan: string) {
+    return this.authService.getUserByIdKaryawan(idKaryawan);
+  }
+
   // Assign supervisor ke user
   @Patch('users/:userId/supervisor')
   async assignSupervisor(

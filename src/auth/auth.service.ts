@@ -189,4 +189,22 @@ export class AuthService {
       masaKerja: this.hitungMasaKerja(u.tanggalMulaiKerja),
     }));
   }
+
+  // ── Lookup user by idKaryawan — untuk form license-certification ──
+  async getUserByIdKaryawan(idKaryawan: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { idKaryawan },
+      select: {
+        id:          true,
+        idKaryawan:  true,
+        nama:        true,
+        jabatan:     true,
+        departemen:  true,
+        divisi:      true,
+        perusahaan:  true,
+      },
+    });
+    if (!user) return null;
+    return user;
+  }
 }

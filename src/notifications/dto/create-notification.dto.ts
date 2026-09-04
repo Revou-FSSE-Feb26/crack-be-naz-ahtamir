@@ -5,9 +5,24 @@ export class CreateNotificationDto {
   @IsNotEmpty()
   userId: string;
 
-  @IsEnum(['finding_submitted', 'approval_required', 'finding_approved', 'finding_rejected'])
+  @IsEnum([
+    'finding_submitted',
+    'approval_required',
+    'finding_approved',
+    'finding_rejected',
+    'deadline_reminder',
+    'license_expiring_soon',
+    'license_expired',
+  ])
   @IsNotEmpty()
-  type: 'finding_submitted' | 'approval_required' | 'finding_approved' | 'finding_rejected';
+  type:
+    | 'finding_submitted'
+    | 'approval_required'
+    | 'finding_approved'
+    | 'finding_rejected'
+    | 'deadline_reminder'
+    | 'license_expiring_soon'
+    | 'license_expired';
 
   @IsString()
   @IsNotEmpty()

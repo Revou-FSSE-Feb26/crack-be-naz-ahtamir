@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
@@ -10,6 +11,10 @@ import { UploadsModule } from './uploads/uploads.module';
 import { K3PolicyModule } from './modules/k3-policy/k3-policy.module';
 import { DepartmentsModule } from './modules/departments/departments.module';
 import { DocumentsModule } from './modules/documents/documents.module';
+import { DeadlineSchedulerModule } from './scheduler/deadline-scheduler.module';
+import { LicenseSchedulerModule } from './scheduler/license-scheduler.module';
+import { InductionModule } from './modules/induction/induction.module';
+import { ObjekK3Module } from './modules/objek-k3/objek-k3.module';
 
 @Module({
   imports: [
@@ -17,6 +22,7 @@ import { DocumentsModule } from './modules/documents/documents.module';
       isGlobal: true,
       envFilePath: '.env',
     }),
+    ScheduleModule.forRoot(),
     PrismaModule,
     AuthModule,
     FindingsModule,
@@ -25,6 +31,10 @@ import { DocumentsModule } from './modules/documents/documents.module';
     K3PolicyModule,
     DepartmentsModule,
     DocumentsModule,
+    DeadlineSchedulerModule,
+    LicenseSchedulerModule,
+    InductionModule,
+    ObjekK3Module,
   ],
   controllers: [AppController],
   providers: [AppService],

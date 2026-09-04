@@ -24,6 +24,9 @@ enum NotificationType {
   approval_required
   finding_approved
   finding_rejected
+  deadline_reminder
+  license_expiring_soon
+  license_expired
 }
 
 enum ApprovalStatus {
@@ -75,14 +78,18 @@ model User {
   updatedAt    DateTime @updatedAt      @map("updated_at")
 
   // Relasi
-  findings           Finding[]      @relation("FindingCreator")
-  approvals          Finding[]      @relation("FindingApprover")
-  pics               Finding[]      @relation("FindingPIC")
-  notifications      Notification[]
-  auditLogs          AuditLog[]
-  k3PoliciesCreated  K3Policy[]     @relation("K3PolicyCreatedBy")
-  k3PoliciesUpdated  K3Policy[]     @relation("K3PolicyUpdatedBy")
-  documentsCreated   Document[]     @relation("DocumentCreatedBy")
+  findings               Finding[]              @relation("FindingCreator")
+  approvals              Finding[]              @relation("FindingApprover")
+  pics                   Finding[]              @relation("FindingPIC")
+  notifications          Notification[]
+  auditLogs              AuditLog[]
+  k3PoliciesCreated      K3Policy[]             @relation("K3PolicyCreatedBy")
+  k3PoliciesUpdated      K3Policy[]             @relation("K3PolicyUpdatedBy")
+  documentsCreated       Document[]             @relation("DocumentCreatedBy")
+  inductionSessionsPIC   InductionSession[]     @relation("InductionPIC")
+  inductionParticipants  InductionParticipant[] @relation("InductionUserParticipant")
+  objekK3Created         ObjekK3[]              @relation("ObjekK3CreatedBy")
+  objekK3Updated         ObjekK3[]              @relation("ObjekK3UpdatedBy")
 
   @@map("users")
 }
@@ -204,7 +211,8 @@ model Department {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt      @map("updated_at")
 
-  documents Document[]
+  documents  Document[]
+  objekK3    ObjekK3[]
 
   @@map("departments")
 }
@@ -301,4 +309,211 @@ model K3Policy {
   updatedAt         DateTime @updatedAt @map("updated_at")
 
   @@map("k3_policies")
+}
+
+// ── Objek K3 ──────────────────────────────────────────────────────────────
+
+enum Perusahaan {
+  QMB
+  ESG
+  MEIMING
+  GEN
+  QINGMEI
+  GNM
+}
+
+enum KategoriObjek {
+  PESAWAT_UAP_DAN_BEJANA_TEKAN
+  PESAWAT_ANGKAT_ANGKUT
+  PESAWAT_TENAGA_PRODUKSI
+  INSTALASI_LISTRIK
+  INSTALASI_PENYALUR_PETIR
+  INSTALASI_ELEVATOR
+  INSTALASI_PROTEKSI_KEBAKARAN
+}
+
+enum StatusKelayakan {
+  LAYAK
+  TIDAK_LAYAK
+  PERLU_PERBAIKAN
+}
+
+enum StatusRiksaUji {
+  SUDAH
+  BELUM
+  DALAM_PROSES
+}
+
+enum StatusAman {
+  AMAN
+  PROSES_RIKSA_UJI
+  PROSES_PERPANJANG
+  BELUM_ADA_PLAN
+}
+
+model ObjekK3 {
+  id                  String   @id @default(cuid())
+
+  // Identitas
+  perusahaan          Perusahaan
+  kategori            KategoriObjek
+  namaAlat            String   @map("nama_alat")
+  noSeri              String   @map("no_seri")
+  jumlah              Int
+  departemenId        String   @map("departemen_id")
+  departemen          Department @relation(fields: [departemenId], references: [id])
+  lokasi              String
+
+  // Spesifikasi
+  kapasitas           Float?
+  satuan              String?
+  tahunPemasangan     Int?     @map("tahun_pemasangan")
+  kondisiPemasangan   String?  @map("kondisi_pemasangan")
+
+  // Dokumen Pengesahan
+  pengesahanGambar    String?  @map("pengesahan_gambar")
+
+  // Pengujian
+  tanggalPengujianPertama  DateTime? @map("tanggal_pengujian_pertama")
+  tanggalPengujianBerkala  DateTime? @map("tanggal_pengujian_berkala")
+
+  // Status & Kelayakan
+  statusKelayakan     StatusKelayakan? @map("status_kelayakan")
+  statusRiksaUji      StatusRiksaUji?  @map("status_riksa_uji")
+  noSuket             String?  @map("no_suket")
+  tanggalRiksaUjiTerakhir DateTime? @map("tanggal_riksa_uji_terakhir")
+  tanggalBerlaku      DateTime? @map("tanggal_berlaku")
+  sisaHari            Int?     @map("sisa_hari")
+  statusAman          StatusAman? @map("status_aman")
+  jadwalRiksaUji      DateTime? @map("jadwal_riksa_uji")
+
+  // LHU
+  lhu                 String?
+  fileLHU             String?  @map("file_lhu")
+  lhuAda              String?  @map("lhu_ada")
+  noLHU               String?  @map("no_lhu")
+
+  // Foto
+  fotoAlat            String?  @map("foto_alat")
+  fotoTagging         String?  @map("foto_tagging")
+
+  // Dokumen Tambahan
+  sertifikat          String?
+  laporanPemeriksaan  String?  @map("laporan_pemeriksaan")
+
+  // Catatan
+  catatan             String?
+
+  // Audit
+  createdById         String   @map("created_by_id")
+  createdBy           User     @relation("ObjekK3CreatedBy", fields: [createdById], references: [id])
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedById         String?  @map("updated_by_id")
+  updatedBy           User?    @relation("ObjekK3UpdatedBy", fields: [updatedById], references: [id])
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  riwayatPemeriksaan  RiwayatPemeriksaan[]
+
+  @@map("objek_k3")
+}
+
+model RiwayatPemeriksaan {
+  id          String   @id @default(cuid())
+  objekK3Id   String   @map("objek_k3_id")
+  objekK3     ObjekK3  @relation(fields: [objekK3Id], references: [id], onDelete: Cascade)
+
+  tanggal     DateTime
+  hasil       String
+  catatan     String?
+  fileLaporan String?  @map("file_laporan")
+
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("riwayat_pemeriksaan")
+}
+
+// ── Safety Induction ──────────────────────────────────────
+
+model InductionSession {
+  id        String   @id @default(cuid())
+  kodeSesi  String   @unique @map("kode_sesi")   // SI-2609-001
+  qrCode    String?  @map("qr_code")             // data URL / path gambar QR
+  tanggal   DateTime
+  lokasi    String
+  topik     String?
+  deskripsi String?
+
+  picId     String?  @map("pic_id")
+  pic       User?    @relation("InductionPIC", fields: [picId], references: [id])
+
+  // INPG (sesi berlangsung), CLSD (semua dokumen lengkap)
+  status    String   @default("INPG")
+
+  participants InductionParticipant[]
+  media        InductionMedia[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt      @map("updated_at")
+
+  @@map("induction_sessions")
+}
+
+model InductionParticipant {
+  id        String   @id @default(cuid())
+
+  sessionId String           @map("session_id")
+  session   InductionSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  // Internal karyawan (opsional)
+  userId    String?  @map("user_id")
+  user      User?    @relation("InductionUserParticipant", fields: [userId], references: [id])
+
+  // Data peserta (wajib untuk external; snapshot untuk internal)
+  nama      String
+  perusahaan String?
+  identitas  String?  // NIK / KTP / Paspor — untuk cek duplikat
+  noTelp     String?  @map("no_telp")
+  email      String?
+  jabatan    String?
+  jenisKelamin String? @map("jenis_kelamin")
+  fotoUrl    String?  @map("foto_url")
+
+  // KARYAWAN_BARU, KONTRAKTOR, TAMU, SUPPLIER, MAGANG
+  tipe      String   @default("EXTERNAL")
+
+  // Kehadiran
+  scanTime    DateTime? @map("scan_time")
+  scanMethod  String?   @map("scan_method")   // QR, MANUAL
+  // REGISTERED, HADIR, IZIN, ALPHA
+  statusHadir String    @default("REGISTERED") @map("status_hadir")
+
+  // Kartu Induksi
+  cardCode      String?   @map("card_code")      // kode verifikasi unik
+  cardUrl       String?   @map("card_url")       // path file HTML/PDF
+  cardIssuedAt  DateTime? @map("card_issued_at")
+
+  // Cegah duplikat dalam satu sesi
+  @@unique([sessionId, identitas])
+  @@unique([sessionId, userId])
+
+  @@map("induction_participants")
+}
+
+model InductionMedia {
+  id        String   @id @default(cuid())
+
+  sessionId String           @map("session_id")
+  session   InductionSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  // FOTO_ABSENSI, FOTO_KEGIATAN, MATERI, DOKUMEN
+  type      String
+  fileUrl   String   @map("file_url")
+  fileName  String?  @map("file_name")
+  fileSize  Int?     @map("file_size")
+  mimeType  String?  @map("mime_type")
+
+  uploadedBy String?  @map("uploaded_by")
+  uploadedAt DateTime @default(now()) @map("uploaded_at")
+
+  @@map("induction_media")
 }
