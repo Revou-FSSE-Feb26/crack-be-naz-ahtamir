@@ -207,7 +207,7 @@ export class ObjekK3Controller {
       tahunPemasangan: n(body.tahunPemasangan),
       kondisiPemasangan: body.kondisiPemasangan || undefined,
       // Files — new upload wins; keep existing if no new upload
-      pengesahanGambar: fileUrl(files, 'pengesahanGambar') ?? body.pengesahanGambar || undefined,
+      pengesahanGambar: (fileUrl(files, 'pengesahanGambar') ?? body.pengesahanGambar) || undefined,
       tanggalPengujianPertama: body.tanggalPengujianPertama || undefined,
       tanggalPengujianBerkala: body.tanggalPengujianBerkala || undefined,
       statusKelayakan: (body.statusKelayakan as any) || undefined,
@@ -218,13 +218,13 @@ export class ObjekK3Controller {
       statusAman: (body.statusAman as any) || undefined,
       jadwalRiksaUji: body.jadwalRiksaUji || undefined,
       lhu: body.lhu || undefined,
-      fileLHU: fileUrl(files, 'fileLHU') ?? body.fileLHU || undefined,
+      fileLHU: (fileUrl(files, 'fileLHU') ?? body.fileLHU) || undefined,
       lhuAda: body.lhuAda || undefined,
       noLHU: body.noLHU || undefined,
-      fotoAlat: fileUrl(files, 'fotoAlat') ?? body.fotoAlat || undefined,
-      fotoTagging: fileUrl(files, 'fotoTagging') ?? body.fotoTagging || undefined,
-      sertifikat: fileUrl(files, 'sertifikat') ?? body.sertifikat || undefined,
-      laporanPemeriksaan: fileUrl(files, 'laporanPemeriksaan') ?? body.laporanPemeriksaan || undefined,
+      fotoAlat: (fileUrl(files, 'fotoAlat') ?? body.fotoAlat) || undefined,
+      fotoTagging: (fileUrl(files, 'fotoTagging') ?? body.fotoTagging) || undefined,
+      sertifikat: (fileUrl(files, 'sertifikat') ?? body.sertifikat) || undefined,
+      laporanPemeriksaan: (fileUrl(files, 'laporanPemeriksaan') ?? body.laporanPemeriksaan) || undefined,
       catatan: body.catatan || undefined,
     };
   }

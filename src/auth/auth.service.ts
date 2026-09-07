@@ -1,8 +1,18 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import * as crypto from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { differenceInYears, differenceInMonths, differenceInDays } from 'date-fns';
+import { UpdateUserDto, ChangePasswordDto, ForgotPasswordDto, ResetPasswordDto } from './dto/update-user.dto';
+
+// In-memory token store (gunakan Redis / DB di production)
+const resetTokens = new Map<string, { userId: string; expiresAt: number }>();
 
 @Injectable()
 export class AuthService {
@@ -48,7 +58,7 @@ export class AuthService {
     }
 
     if (!user.approved) {
-      throw new UnauthorizedException('Akun belum disetujui');
+      throw new UnauthorizedException('Akun tidak aktif. Hubungi admin.');
     }
 
     const isValid = await bcrypt.compare(password, user.password);
@@ -88,7 +98,6 @@ export class AuthService {
 
     for (const userData of usersData) {
       try {
-        // Cek sudah ada atau belum
         const existing = await this.prisma.user.findUnique({
           where: { idKaryawan: userData.idKaryawan },
         });
@@ -101,7 +110,6 @@ export class AuthService {
           continue;
         }
 
-        // Tentukan role
         let role: 'admin' | 'supervisor' | 'user' = 'user';
         if (ADMIN_IDS.includes(userData.idKaryawan)) {
           role = 'admin';
@@ -112,7 +120,6 @@ export class AuthService {
           }
         }
 
-        // Password: idKaryawan + K3
         const hashedPassword = await bcrypt.hash(
           `${userData.idKaryawan}K3`, 10
         );
@@ -173,6 +180,7 @@ export class AuthService {
         nama:             true,
         jabatan:          true,
         departemen:       true,
+        email:            true,
         role:             true,
         supervisorId:     true,
         tanggalLahir:     true,
@@ -188,6 +196,45 @@ export class AuthService {
       umur:      this.hitungUmur(u.tanggalLahir),
       masaKerja: this.hitungMasaKerja(u.tanggalMulaiKerja),
     }));
+  }
+
+  // ── Get user by ID ──
+  async getUserById(id: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      select: {
+        id:               true,
+        idKaryawan:       true,
+        nama:             true,
+        jabatan:          true,
+        departemen:       true,
+        divisi:           true,
+        pusat:            true,
+        perusahaan:       true,
+        email:            true,
+        role:             true,
+        supervisorId:     true,
+        tanggalLahir:     true,
+        tempatLahir:      true,
+        agama:            true,
+        jenisKelamin:     true,
+        pendidikan:       true,
+        namaSekolah:      true,
+        jurusan:          true,
+        tanggalMulaiKerja: true,
+        approved:         true,
+        createdAt:        true,
+        updatedAt:        true,
+      },
+    });
+
+    if (!user) throw new NotFoundException('User tidak ditemukan');
+
+    return {
+      ...user,
+      umur:      this.hitungUmur(user.tanggalLahir),
+      masaKerja: this.hitungMasaKerja(user.tanggalMulaiKerja),
+    };
   }
 
   // ── Lookup user by idKaryawan — untuk form license-certification ──
@@ -206,5 +253,179 @@ export class AuthService {
     });
     if (!user) return null;
     return user;
+  }
+
+  // ────────────────────────────────────────────────────
+  // TASK 1: Soft delete — set approved=false
+  // ────────────────────────────────────────────────────
+  async deactivateUser(id: string) {
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) throw new NotFoundException('User tidak ditemukan');
+
+    const updated = await this.prisma.user.update({
+      where: { id },
+      data: { approved: false },
+      select: {
+        id: true, idKaryawan: true, nama: true,
+        jabatan: true, departemen: true, role: true, approved: true,
+      },
+    });
+
+    return { message: 'User berhasil dinonaktifkan', user: updated };
+  }
+
+  // ── Reactivate user ──
+  async activateUser(id: string) {
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) throw new NotFoundException('User tidak ditemukan');
+
+    const updated = await this.prisma.user.update({
+      where: { id },
+      data: { approved: true },
+      select: {
+        id: true, idKaryawan: true, nama: true,
+        jabatan: true, departemen: true, role: true, approved: true,
+      },
+    });
+
+    return { message: 'User berhasil diaktifkan', user: updated };
+  }
+
+  // ────────────────────────────────────────────────────
+  // TASK 2: Update user profile
+  // ────────────────────────────────────────────────────
+  async updateUser(id: string, dto: UpdateUserDto) {
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) throw new NotFoundException('User tidak ditemukan');
+
+    const updated = await this.prisma.user.update({
+      where: { id },
+      data: {
+        ...(dto.nama        !== undefined && { nama: dto.nama }),
+        ...(dto.jabatan     !== undefined && { jabatan: dto.jabatan }),
+        ...(dto.departemen  !== undefined && { departemen: dto.departemen }),
+        ...(dto.divisi      !== undefined && { divisi: dto.divisi }),
+        ...(dto.pusat       !== undefined && { pusat: dto.pusat }),
+        ...(dto.perusahaan  !== undefined && { perusahaan: dto.perusahaan }),
+        ...(dto.email       !== undefined && { email: dto.email }),
+      },
+      select: {
+        id: true, idKaryawan: true, nama: true, jabatan: true,
+        departemen: true, divisi: true, pusat: true, perusahaan: true,
+        email: true, role: true, approved: true,
+      },
+    });
+
+    return { message: 'Profil berhasil diperbarui', user: updated };
+  }
+
+  // ────────────────────────────────────────────────────
+  // TASK 3: Forgot password — generate reset token
+  // ────────────────────────────────────────────────────
+  async forgotPassword(dto: ForgotPasswordDto) {
+    const user = await this.prisma.user.findUnique({
+      where: { idKaryawan: dto.idKaryawan },
+    });
+
+    // Jangan reveal apakah user exist atau tidak (security)
+    if (!user) {
+      return {
+        message: 'Jika ID Karyawan terdaftar, token reset telah dibuat.',
+        // Dev helper: kembalikan token jika tidak ada email service
+        ...(process.env.NODE_ENV !== 'production' && { debug: 'User tidak ditemukan' }),
+      };
+    }
+
+    // Generate secure random token
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiresAt = Date.now() + 60 * 60 * 1000; // 1 jam
+
+    // Hapus token lama untuk user ini
+    for (const [t, data] of resetTokens.entries()) {
+      if (data.userId === user.id) resetTokens.delete(t);
+    }
+
+    resetTokens.set(token, { userId: user.id, expiresAt });
+
+    // TODO: Kirim email dengan token jika EMAIL_SERVICE dikonfigurasi
+    // Untuk sekarang, return token di development mode
+    const response: any = {
+      message: 'Token reset password berhasil dibuat. Berlaku 1 jam.',
+    };
+
+    if (process.env.NODE_ENV !== 'production') {
+      response.resetToken = token;
+      response.resetUrl   = `/reset-password?token=${token}`;
+      response.note       = 'Token ini hanya muncul di development mode';
+    }
+
+    return response;
+  }
+
+  // ── Validate reset token ──
+  async validateResetToken(token: string) {
+    const data = resetTokens.get(token);
+    if (!data || data.expiresAt < Date.now()) {
+      throw new BadRequestException('Token tidak valid atau sudah kedaluwarsa');
+    }
+    return { valid: true };
+  }
+
+  // ── Reset password dengan token ──
+  async resetPassword(dto: ResetPasswordDto) {
+    const data = resetTokens.get(dto.token);
+    if (!data || data.expiresAt < Date.now()) {
+      throw new BadRequestException('Token tidak valid atau sudah kedaluwarsa');
+    }
+
+    const hashedPassword = await bcrypt.hash(dto.newPassword, 10);
+
+    await this.prisma.user.update({
+      where: { id: data.userId },
+      data: { password: hashedPassword },
+    });
+
+    // Hapus token setelah berhasil dipakai
+    resetTokens.delete(dto.token);
+
+    return { message: 'Password berhasil direset' };
+  }
+
+  // ────────────────────────────────────────────────────
+  // TASK 4: Change password (user mengubah password sendiri)
+  // ────────────────────────────────────────────────────
+  async changePassword(id: string, dto: ChangePasswordDto) {
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) throw new NotFoundException('User tidak ditemukan');
+
+    const isValid = await bcrypt.compare(dto.currentPassword, user.password);
+    if (!isValid) {
+      throw new UnauthorizedException('Password saat ini tidak sesuai');
+    }
+
+    if (dto.currentPassword === dto.newPassword) {
+      throw new BadRequestException('Password baru tidak boleh sama dengan password lama');
+    }
+
+    const hashedPassword = await bcrypt.hash(dto.newPassword, 10);
+
+    await this.prisma.user.update({
+      where: { id },
+      data: { password: hashedPassword },
+    });
+
+    return { message: 'Password berhasil diubah' };
+  }
+
+  // ── Update role (admin only) ──
+  async updateUserRole(userId: string, role: 'admin' | 'supervisor' | 'user') {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User tidak ditemukan');
+
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { role },
+      select: { id: true, idKaryawan: true, nama: true, role: true },
+    });
   }
 }
