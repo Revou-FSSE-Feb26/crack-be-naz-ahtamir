@@ -15,6 +15,7 @@ import { DeadlineSchedulerModule } from './scheduler/deadline-scheduler.module';
 import { LicenseSchedulerModule } from './scheduler/license-scheduler.module';
 import { InductionModule } from './modules/induction/induction.module';
 import { ObjekK3Module } from './modules/objek-k3/objek-k3.module';
+import { EmergencyDrillModule } from './modules/emergency-drill/emergency-drill.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { ObjekK3Module } from './modules/objek-k3/objek-k3.module';
     LicenseSchedulerModule,
     InductionModule,
     ObjekK3Module,
+    EmergencyDrillModule,
   ],
   controllers: [AppController],
   providers: [AppService],

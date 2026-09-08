@@ -26,48 +26,59 @@ export enum StatusValidasi {
 }
 
 export class CreateK3PolicyDto {
-  @ApiProperty({ enum: JenisKebijakan, example: 'UMUM' })
+  @ApiProperty({ description: 'Jenis kebijakan K3', enum: JenisKebijakan, example: 'UMUM' })
   @IsEnum(JenisKebijakan)
   @IsNotEmpty()
   jenisKebijakan: JenisKebijakan;
 
-  @ApiProperty({ example: 'Kebijakan K3 PT QMB' })
+  @ApiProperty({ description: 'Judul kebijakan K3', example: 'Kebijakan K3 PT QMB' })
   @IsString()
   @IsNotEmpty()
   judulKebijakan: string;
 
-  @ApiProperty({ example: '2026-01-01' })
+  @ApiProperty({ description: 'Tanggal penetapan kebijakan', example: '2026-01-01' })
   @IsDateString()
   @IsNotEmpty()
   tanggalPenetapan: string;
 
-  @ApiProperty({ example: 'Zhou Yang' })
+  @ApiProperty({ description: 'Nama penandatangan', example: 'Zhou Yang' })
   @IsString()
   @IsNotEmpty()
   penandatangan: string;
 
-  @ApiProperty({ example: 'Deputy Manager' })
+  @ApiProperty({ description: 'Jabatan penandatangan', example: 'Deputy Manager' })
   @IsString()
   @IsNotEmpty()
   jabatan: string;
 
-  @ApiProperty({ enum: StatusDokumen, example: 'ASLI' })
+  @ApiProperty({ description: 'Status dokumen', enum: StatusDokumen, example: 'ASLI' })
   @IsEnum(StatusDokumen)
   @IsNotEmpty()
   statusDokumen: StatusDokumen;
 
-  @ApiPropertyOptional({ enum: StatusDistribusi, example: 'TERKENDALI' })
+  @ApiPropertyOptional({ description: 'Status distribusi', enum: StatusDistribusi, example: 'TERKENDALI' })
   @IsEnum(StatusDistribusi)
   @IsOptional()
   statusDistribusi?: StatusDistribusi;
 
-  @ApiPropertyOptional({ enum: StatusValidasi, example: 'BERLAKU' })
+  @ApiPropertyOptional({ description: 'Status validasi', enum: StatusValidasi, example: 'BERLAKU' })
   @IsEnum(StatusValidasi)
   @IsOptional()
   statusValidasi?: StatusValidasi;
 
-  @ApiPropertyOptional({ type: 'string', format: 'binary', description: 'File PDF' })
+  @ApiPropertyOptional({ 
+    type: 'string', 
+    format: 'binary', 
+    description: 'File PDF kebijakan' 
+  })
   @IsOptional()
   file?: any;
-    fileUrl: any;
+
+  @ApiPropertyOptional({ 
+    description: 'URL file yang sudah diupload (diisi otomatis oleh server)', 
+    example: '/uploads/k3-policy/1234567890.pdf' 
+  })
+  @IsOptional()
+  @IsString()
+  fileUrl?: string;
 }

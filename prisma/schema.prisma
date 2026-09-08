@@ -90,6 +90,8 @@ model User {
   inductionParticipants  InductionParticipant[] @relation("InductionUserParticipant")
   objekK3Created         ObjekK3[]              @relation("ObjekK3CreatedBy")
   objekK3Updated         ObjekK3[]              @relation("ObjekK3UpdatedBy")
+  drillsCreated          EmergencyDrill[]        @relation("DrillCreatedBy")
+  drillsUpdated          EmergencyDrill[]        @relation("DrillUpdatedBy")
 
   @@map("users")
 }
@@ -213,6 +215,7 @@ model Department {
 
   documents  Document[]
   objekK3    ObjekK3[]
+  emergencyDrills EmergencyDrill[]
 
   @@map("departments")
 }
@@ -430,6 +433,65 @@ model RiwayatPemeriksaan {
   createdAt   DateTime @default(now()) @map("created_at")
 
   @@map("riwayat_pemeriksaan")
+}
+
+// ── Emergency Drill ───────────────────────────────────────
+
+enum DrillType {
+  FIRE
+  EARTHQUAKE
+  CHEMICAL_SPILL
+  EVACUATION
+  FIRST_AID
+  OTHER
+}
+
+enum DrillStatus {
+  COMPLETED
+  NOT_COMPLETED
+}
+
+model EmergencyDrill {
+  id              String      @id @default(cuid())
+
+  // ── PLAN (Rencana) ──
+  planDate        DateTime    @map("plan_date")
+  drillType       DrillType   @map("drill_type")
+  scenario        String
+  departmentId    String      @map("department_id")
+  department      Department  @relation(fields: [departmentId], references: [id])
+  division        String
+  picPlan         String      @map("pic_plan")
+  notesPlan       String?     @map("notes_plan")
+
+  // ── ACTUAL (Pelaksanaan) ──
+  actualDate        DateTime? @map("actual_date")
+  location          String?
+  totalTKA          Int?      @map("total_tka")
+  totalTKI          Int?      @map("total_tki")
+  totalStaff        Int?      @map("total_staff")
+  participationRate Float?    @map("participation_rate")
+  duration          String?
+  picActual         String?   @map("pic_actual")
+  notesActual       String?   @map("notes_actual")
+
+  // ── DOKUMENTASI ──
+  photoDocumentation String?  @map("photo_documentation")
+  attendanceList     String?  @map("attendance_list")
+  drillReport        String?  @map("drill_report")
+
+  // ── STATUS (Auto) ──
+  status          DrillStatus @default(NOT_COMPLETED)
+
+  // ── AUDIT ──
+  createdById     String      @map("created_by_id")
+  createdBy       User        @relation("DrillCreatedBy", fields: [createdById], references: [id])
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedById     String?     @map("updated_by_id")
+  updatedBy       User?       @relation("DrillUpdatedBy", fields: [updatedById], references: [id])
+  updatedAt       DateTime    @updatedAt @map("updated_at")
+
+  @@map("emergency_drills")
 }
 
 // ── Safety Induction ──────────────────────────────────────

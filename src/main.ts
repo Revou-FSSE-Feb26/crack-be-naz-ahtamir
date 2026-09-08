@@ -27,7 +27,7 @@ async function bootstrap() {
   });
 
   // ── Static Files (for uploaded files) ──
-  // Gunakan process.cwd() agar path benar di semua mode (dev/prod/watch)
+  // File disimpan di crack-be-naz-ahtamir/public/uploads/ (di dalam folder backend)
   const uploadsPath = join(process.cwd(), 'public', 'uploads');
   app.use('/uploads', (req: any, res: any, next: any) => {
     res.header('Access-Control-Allow-Origin', 'http://localhost:3000');

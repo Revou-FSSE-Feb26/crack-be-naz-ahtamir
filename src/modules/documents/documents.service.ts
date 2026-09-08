@@ -9,7 +9,7 @@ import { diskStorage } from 'multer';
 import { extname, join } from 'path';
 import * as fs from 'fs';
 
-// Urutan level hierarki — index lebih kecil = level lebih tinggi
+// Urutan level hierarki �?index lebih kecil = level lebih tinggi
 export const JENIS_ORDER = ['MANUAL', 'SOP', 'INSTRUKSI_KERJA', 'FORMULIR'] as const;
 
 const INCLUDE_FULL = {
@@ -23,7 +23,7 @@ const INCLUDE_FULL = {
 // ── diskStorage config (sama persis dengan k3-policy) ─────────────────────
 export const documentDiskStorage = diskStorage({
   destination: (_req, _file, cb) => {
-    const dir = join(process.cwd(), '..', 'public', 'uploads', 'documents');
+    const dir = join(process.cwd(), 'public', 'uploads', 'documents');
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     cb(null, dir);
   },
