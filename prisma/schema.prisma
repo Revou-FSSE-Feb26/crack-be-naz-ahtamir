@@ -93,6 +93,11 @@ model User {
   drillsCreated          EmergencyDrill[]        @relation("DrillCreatedBy")
   drillsUpdated          EmergencyDrill[]        @relation("DrillUpdatedBy")
 
+  investigationsAsPelapor    Investigation[]     @relation("Pelapor")
+  investigationsAsInvestigator Investigation[]   @relation("Investigator")
+  investigationsAsApprover   Investigation[]     @relation("InvestigationApprover")
+  investigationLogs          InvestigationLog[]  @relation("InvestigationLogUser")
+
   @@map("users")
 }
 
@@ -142,6 +147,7 @@ model Finding {
 
   notifications  Notification[]
   auditLogs      AuditLog[]
+  investigations Investigation[]
 
   @@map("findings")
 }
@@ -492,6 +498,99 @@ model EmergencyDrill {
   updatedAt       DateTime    @updatedAt @map("updated_at")
 
   @@map("emergency_drills")
+}
+
+// ── Investigation ─────────────────────────────────────────
+
+enum InvestigationStatus {
+  DRAFT
+  UNDER_INVESTIGATION
+  PENDING_APPROVAL
+  APPROVED
+  VICTIM_SIGNED
+  COMPLETED
+  REJECTED
+}
+
+enum JenisKecelakaan {
+  LUKA_RINGAN
+  LUKA_BERAT
+  MENINGGAL
+  KERUSAKAN
+  NEAR_MISS
+}
+
+model Investigation {
+  id                  String   @id @default(cuid())
+
+  // ── Data Kecelakaan ──
+  tanggalKejadian     DateTime @map("tanggal_kejadian")
+  waktuKejadian       String   @map("waktu_kejadian")
+  lokasi              String
+  area                String
+  deskripsiKejadian   String   @map("deskripsi_kejadian")
+  jenisKecelakaan     JenisKecelakaan @map("jenis_kecelakaan")
+  jumlahKorban        Int      @default(0) @map("jumlah_korban")
+  daftarKorban        Json?    @map("daftar_korban")
+  saksi               String?
+  kerugianMaterial    String?  @map("kerugian_material")
+  fotoBukti           String?  @map("foto_bukti")
+
+  // ── Data Investigasi ──
+  investigatorId      String?  @map("investigator_id")
+  investigator        User?    @relation("Investigator", fields: [investigatorId], references: [id])
+  tanggalInvestigasi  DateTime? @map("tanggal_investigasi")
+  rootCause           String?  @map("root_cause")
+  temuanInvestigasi   String?  @map("temuan_investigasi")
+  rekomendasiPerbaikan String? @map("rekomendasi_perbaikan")
+  lampiranLaporan     String?  @map("lampiran_laporan")
+  catatanTambahan     String?  @map("catatan_tambahan")
+
+  // ── Approval ──
+  approvedById        String?  @map("approved_by_id")
+  approvedBy          User?    @relation("InvestigationApprover", fields: [approvedById], references: [id])
+  approvedAt          DateTime? @map("approved_at")
+  signatureApproval   String?  @map("signature_approval")
+
+  // ── Tanda Tangan Korban ──
+  victimSignedAt      DateTime? @map("victim_signed_at")
+  victimSignature     String?  @map("victim_signature")
+
+  // ── Tanda Tangan Atasan Korban ──
+  supervisorSignedAt  DateTime? @map("supervisor_signed_at")
+  supervisorSignature String?  @map("supervisor_signature")
+  supervisorNote      String?  @map("supervisor_note")
+
+  // ── Status ──
+  status              InvestigationStatus @default(DRAFT)
+
+  // ── Link ke Finding ──
+  findingId           String?  @map("finding_id")
+  finding             Finding? @relation(fields: [findingId], references: [id])
+
+  // ── Audit ──
+  pelaporId           String   @map("pelapor_id")
+  pelapor             User     @relation("Pelapor", fields: [pelaporId], references: [id])
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  // ── Riwayat ──
+  logs                InvestigationLog[]
+
+  @@map("investigations")
+}
+
+model InvestigationLog {
+  id              String   @id @default(cuid())
+  investigationId String   @map("investigation_id")
+  investigation   Investigation @relation(fields: [investigationId], references: [id], onDelete: Cascade)
+  userId          String   @map("user_id")
+  user            User     @relation("InvestigationLogUser", fields: [userId], references: [id])
+  action          String
+  description     String
+  timestamp       DateTime @default(now())
+
+  @@map("investigation_logs")
 }
 
 // ── Safety Induction ──────────────────────────────────────

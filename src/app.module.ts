@@ -16,6 +16,7 @@ import { LicenseSchedulerModule } from './scheduler/license-scheduler.module';
 import { InductionModule } from './modules/induction/induction.module';
 import { ObjekK3Module } from './modules/objek-k3/objek-k3.module';
 import { EmergencyDrillModule } from './modules/emergency-drill/emergency-drill.module';
+import { InvestigationModule } from './modules/investigation/investigation.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { EmergencyDrillModule } from './modules/emergency-drill/emergency-drill.
     InductionModule,
     ObjekK3Module,
     EmergencyDrillModule,
+    InvestigationModule,
   ],
   controllers: [AppController],
   providers: [AppService],
