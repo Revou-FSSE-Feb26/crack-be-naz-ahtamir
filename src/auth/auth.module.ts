@@ -9,6 +9,8 @@ import { JwtStrategy } from './jwt.strategy';
 
 @Module({
   imports: [
+    // ConfigModule harus ada di level ini agar JwtStrategy bisa inject ConfigService
+    ConfigModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -16,7 +18,7 @@ import { JwtStrategy } from './jwt.strategy';
         return {
           secret: configService.get<string>('JWT_SECRET'),
           signOptions: {
-            expiresIn: (configService.get<string>('JWT_EXPIRES_IN') || '7d') as any,
+            expiresIn: (configService.get<string>('JWT_EXPIRES_IN') || '30d') as any,
           },
         };
       },

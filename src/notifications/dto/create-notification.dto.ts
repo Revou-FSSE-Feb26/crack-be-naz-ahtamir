@@ -67,6 +67,14 @@ export class CreateNotificationDto {
   findingId?: string;
 
   @ApiPropertyOptional({ 
+    description: 'ID ObjekK3 terkait (opsional)', 
+    example: 'cuid-objek-k3-123' 
+  })
+  @IsString()
+  @IsOptional()
+  objekK3Id?: string;
+
+  @ApiPropertyOptional({ 
     description: 'Status notifikasi (sudah dibaca/belum)', 
     example: false 
   })

@@ -17,6 +17,7 @@ export class NotificationsService {
         title: createNotificationDto.title,
         message: createNotificationDto.message,
         findingId: createNotificationDto.findingId ?? null,
+        objekK3Id: createNotificationDto.objekK3Id ?? null,
         isRead: createNotificationDto.isRead ?? false,
       },
     });
@@ -37,6 +38,15 @@ export class NotificationsService {
             title: true,
             subElementId: true,
             findingStatus: true,
+          },
+        },
+        objekK3: {
+          select: {
+            id: true,
+            namaAlat: true,
+            noSeri: true,
+            tanggalBerlaku: true,
+            statusRiksaUji: true,
           },
         },
       },

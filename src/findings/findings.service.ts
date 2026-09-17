@@ -52,31 +52,39 @@ export class FindingsService {
     }
 
     // ── Kirim notifikasi ke supervisor user ──
+    // Kumpulkan target supervisor/admin
+    const supervisorTargetIds: string[] = [];
     if (creator.supervisorId) {
+      supervisorTargetIds.push(creator.supervisorId);
+    } else {
+      // Fallback: kirim ke semua supervisor/admin jika user tidak punya supervisor
+      const supervisors = await this.prisma.user.findMany({
+        where: { role: { in: ['supervisor', 'admin'] as any[] }, approved: true },
+        select: { id: true },
+      });
+      supervisorTargetIds.push(...supervisors.map((s) => s.id));
+    }
+
+    for (const userId of supervisorTargetIds) {
+      // finding_submitted: informasi temuan baru
       await this.notificationsService.create({
-        userId: creator.supervisorId,
+        userId,
         type: 'finding_submitted',
         title: 'Temuan Baru Dilaporkan',
         message: `${creator.nama} melaporkan temuan baru: "${finding.title}". Harap ditinjau.`,
         findingId: finding.id,
         isRead: false,
       });
-    } else {
-      // Fallback: kirim ke semua supervisor/admin jika user tidak punya supervisor
-      const supervisors = await this.prisma.user.findMany({
-        where: { role: { in: ['supervisor', 'admin'] as any[] } },
-        select: { id: true },
+
+      // approval_required: butuh tindakan persetujuan
+      await this.notificationsService.create({
+        userId,
+        type: 'approval_required',
+        title: 'Butuh Persetujuan Supervisor',
+        message: `Finding "${finding.title}" oleh ${creator.nama} memerlukan persetujuan Anda sebelum PIC dapat ditugaskan.`,
+        findingId: finding.id,
+        isRead: false,
       });
-      for (const sv of supervisors) {
-        await this.notificationsService.create({
-          userId: sv.id,
-          type: 'finding_submitted',
-          title: 'Temuan Baru Dilaporkan',
-          message: `${creator.nama} melaporkan temuan baru: "${finding.title}". Harap ditinjau.`,
-          findingId: finding.id,
-          isRead: false,
-        });
-      }
     }
 
     // Return finding dengan files
@@ -213,33 +221,56 @@ export class FindingsService {
 
     // Create notifications
     if (updateStatusDto.findingStatus === 'CLSD' && updateStatusDto.approvalStatus) {
-      // Approval (ACC/TACC) untuk CLSD
-      if (updateStatusDto.approvalStatus === 'ACC') {
-        await this.notificationsService.create({
-          userId: finding.createdById,
-          type: 'finding_approved',
-          title: 'Finding Approved',
-          message: `Finding "${finding.title}" telah disetujui (ACC) oleh ${approver.nama}`,
-          findingId: id,
-          isRead: false,
-        });
+      const isApproved = updateStatusDto.approvalStatus === 'ACC';
+      const notifType = isApproved ? 'finding_approved' : 'finding_rejected';
+      const notifTitle = isApproved ? 'Finding Disetujui' : 'Finding Ditolak';
+      const notifMessage = isApproved
+        ? `Finding "${finding.title}" telah disetujui (ACC) oleh ${approver.nama}`
+        : `Finding "${finding.title}" ditolak (TACC). Alasan: ${updateStatusDto.approvalNote || 'Tidak ada alasan'}`;
+
+      // Kumpulkan penerima: pembuat + supervisornya
+      const recipientIds = new Set<string>([finding.createdById]);
+
+      // Ambil supervisorId dari pembuat
+      const creator = await this.prisma.user.findUnique({
+        where: { id: finding.createdById },
+        select: { supervisorId: true },
+      });
+
+      if (creator?.supervisorId) {
+        recipientIds.add(creator.supervisorId);
       } else {
+        // Fallback: kirim ke semua supervisor & admin jika tidak ada supervisor spesifik
+        const supervisors = await this.prisma.user.findMany({
+          where: { role: { in: ['supervisor', 'admin'] as any[] }, approved: true },
+          select: { id: true },
+        });
+        for (const sv of supervisors) recipientIds.add(sv.id);
+      }
+
+      for (const userId of recipientIds) {
         await this.notificationsService.create({
-          userId: finding.createdById,
-          type: 'finding_rejected',
-          title: 'Finding Rejected',
-          message: `Finding "${finding.title}" ditolak (TACC). Alasan: ${updateStatusDto.approvalNote || 'Tidak ada alasan'}`,
+          userId,
+          type: notifType,
+          title: notifTitle,
+          message: notifMessage,
           findingId: id,
           isRead: false,
         });
       }
     } else if (updateStatusDto.picId) {
-      // PIC assignment untuk INPG
+      // PIC assignment — notif ke PIC yang ditunjuk
+      const deadlineLabel = updateStatusDto.followUpDeadline
+        ? new Date(updateStatusDto.followUpDeadline).toLocaleDateString('id-ID', {
+            day: '2-digit', month: 'long', year: 'numeric',
+          })
+        : 'Tidak ada deadline';
+
       await this.notificationsService.create({
         userId: updateStatusDto.picId,
         type: 'approval_required',
-        title: 'PIC Assignment',
-        message: `Anda ditunjuk sebagai PIC untuk finding "${finding.title}". Deadline: ${updateStatusDto.followUpDeadline || 'Tidak ada deadline'}`,
+        title: '📋 Anda Ditunjuk Sebagai PIC',
+        message: `Anda ditunjuk sebagai PIC untuk finding "${finding.title}". Harap selesaikan sebelum ${deadlineLabel}.`,
         findingId: id,
         isRead: false,
       });

@@ -18,6 +18,7 @@ import {
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname, join } from 'path';
+import { mkdirSync } from 'fs';
 import {
   ApiTags,
   ApiBearerAuth,
@@ -37,6 +38,9 @@ import { SignApprovalDto, SignVictimDto, SignSupervisorDto } from './dto/sign-in
 // ── Upload config ─────────────────────────────────────────────────────────────
 
 const UPLOAD_DIR = join(process.cwd(), 'public', 'uploads', 'investigation');
+
+// Pastikan direktori upload ada saat modul dimuat
+mkdirSync(UPLOAD_DIR, { recursive: true });
 
 function makeStorage() {
   return diskStorage({
@@ -124,6 +128,25 @@ export class InvestigationController {
   @Post()
   @ApiOperation({ summary: 'Buat laporan kecelakaan baru (DRAFT)' })
   @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      required: ['tanggalKejadian', 'waktuKejadian', 'lokasi', 'area', 'deskripsiKejadian', 'jenisKecelakaan'],
+      properties: {
+        tanggalKejadian:   { type: 'string', format: 'date',   example: '2026-09-15' },
+        waktuKejadian:     { type: 'string',                   example: '08:30' },
+        lokasi:            { type: 'string',                   example: 'Gedung A lantai 2' },
+        area:              { type: 'string',                   example: 'Area Produksi' },
+        deskripsiKejadian: { type: 'string',                   example: 'Karyawan terjatuh saat...' },
+        jenisKecelakaan:   { type: 'string', enum: ['LUKA_RINGAN','LUKA_BERAT','MENINGGAL','KERUSAKAN','NEAR_MISS'] },
+        jumlahKorban:      { type: 'integer', example: 1 },
+        saksi:             { type: 'string',                   example: 'Agus, Rina' },
+        kerugianMaterial:  { type: 'string',                   example: 'Mesin press ~Rp 5jt' },
+        fotoBukti:         { type: 'string', format: 'binary' },
+      },
+    },
+  })
+  @ApiResponse({ status: 201, description: 'Laporan berhasil dibuat dengan status DRAFT' })
   @WithFiles()
   create(
     @Request() req,
@@ -140,6 +163,31 @@ export class InvestigationController {
   @ApiOperation({ summary: 'Update data kecelakaan / investigasi' })
   @ApiParam({ name: 'id', description: 'Investigation ID' })
   @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        tanggalKejadian:      { type: 'string', format: 'date' },
+        waktuKejadian:        { type: 'string' },
+        lokasi:               { type: 'string' },
+        area:                 { type: 'string' },
+        deskripsiKejadian:    { type: 'string' },
+        jenisKecelakaan:      { type: 'string', enum: ['LUKA_RINGAN','LUKA_BERAT','MENINGGAL','KERUSAKAN','NEAR_MISS'] },
+        jumlahKorban:         { type: 'integer' },
+        saksi:                { type: 'string' },
+        kerugianMaterial:     { type: 'string' },
+        fotoBukti:            { type: 'string', format: 'binary' },
+        investigatorId:       { type: 'string', description: 'ID user investigator' },
+        tanggalInvestigasi:   { type: 'string', format: 'date' },
+        rootCause:            { type: 'string' },
+        temuanInvestigasi:    { type: 'string' },
+        rekomendasiPerbaikan: { type: 'string' },
+        lampiranLaporan:      { type: 'string', format: 'binary' },
+        catatanTambahan:      { type: 'string' },
+      },
+    },
+  })
+  @ApiResponse({ status: 200, description: 'Data berhasil diperbarui' })
   @WithFiles()
   update(
     @Param('id') id: string,
@@ -156,6 +204,8 @@ export class InvestigationController {
   @Patch(':id/start-investigation')
   @ApiOperation({ summary: 'Mulai investigasi (DRAFT → UNDER_INVESTIGATION)' })
   @ApiParam({ name: 'id', description: 'Investigation ID' })
+  @ApiBody({ schema: { type: 'object', properties: { investigatorId: { type: 'string', description: 'ID user yang ditugaskan sebagai investigator (opsional)' } } } })
+  @ApiResponse({ status: 200, description: 'Status berubah ke UNDER_INVESTIGATION' })
   startInvestigation(
     @Param('id') id: string,
     @Request() req,
@@ -169,6 +219,8 @@ export class InvestigationController {
   @Patch(':id/submit-approval')
   @ApiOperation({ summary: 'Kirim laporan untuk approval (UNDER_INVESTIGATION → PENDING_APPROVAL)' })
   @ApiParam({ name: 'id', description: 'Investigation ID' })
+  @ApiResponse({ status: 200, description: 'Status berubah ke PENDING_APPROVAL' })
+  @ApiResponse({ status: 400, description: 'Root cause / temuan / rekomendasi belum diisi' })
   submitForApproval(@Param('id') id: string, @Request() req) {
     return this.service.submitForApproval(id, req.user.id);
   }
@@ -178,16 +230,15 @@ export class InvestigationController {
   @Patch(':id/approve')
   @ApiOperation({ summary: 'Approve laporan (PENDING_APPROVAL → APPROVED)' })
   @ApiParam({ name: 'id', description: 'Investigation ID' })
-  @ApiConsumes('multipart/form-data')
-  @WithFiles()
+  @ApiBody({ schema: { type: 'object', properties: { signatureApproval: { type: 'string', description: 'URL / base64 tanda tangan (opsional)' } } } })
+  @ApiResponse({ status: 200, description: 'Status berubah ke APPROVED' })
   approve(
     @Param('id') id: string,
     @Request() req,
-    @Body() body: Record<string, string>,
-    @UploadedFiles() files: UploadedInvFiles,
+    @Body() body: { signatureApproval?: string },
   ) {
     const dto: SignApprovalDto = {
-      signatureApproval: fileUrl(files, 'signatureApproval') ?? body.signatureApproval,
+      signatureApproval: body.signatureApproval,
     };
     return this.service.approve(id, req.user.id, dto);
   }
@@ -197,6 +248,8 @@ export class InvestigationController {
   @Patch(':id/reject')
   @ApiOperation({ summary: 'Tolak laporan (PENDING_APPROVAL → REJECTED)' })
   @ApiParam({ name: 'id', description: 'Investigation ID' })
+  @ApiBody({ schema: { type: 'object', properties: { reason: { type: 'string', example: 'Temuan tidak cukup detail', description: 'Alasan penolakan' } } } })
+  @ApiResponse({ status: 200, description: 'Status berubah ke REJECTED' })
   reject(
     @Param('id') id: string,
     @Request() req,
@@ -210,16 +263,15 @@ export class InvestigationController {
   @Patch(':id/sign-victim')
   @ApiOperation({ summary: 'Tanda tangan korban (APPROVED → VICTIM_SIGNED)' })
   @ApiParam({ name: 'id', description: 'Investigation ID' })
-  @ApiConsumes('multipart/form-data')
-  @WithFiles()
+  @ApiBody({ schema: { type: 'object', properties: { victimSignature: { type: 'string', description: 'URL / base64 tanda tangan korban (opsional)' } } } })
+  @ApiResponse({ status: 200, description: 'Status berubah ke VICTIM_SIGNED' })
   signByVictim(
     @Param('id') id: string,
     @Request() req,
-    @Body() body: Record<string, string>,
-    @UploadedFiles() files: UploadedInvFiles,
+    @Body() body: { victimSignature?: string },
   ) {
     const dto: SignVictimDto = {
-      victimSignature: fileUrl(files, 'victimSignature') ?? body.victimSignature,
+      victimSignature: body.victimSignature,
     };
     return this.service.signByVictim(id, req.user.id, dto);
   }
@@ -229,16 +281,23 @@ export class InvestigationController {
   @Patch(':id/sign-supervisor')
   @ApiOperation({ summary: 'Tanda tangan atasan korban (VICTIM_SIGNED → COMPLETED)' })
   @ApiParam({ name: 'id', description: 'Investigation ID' })
-  @ApiConsumes('multipart/form-data')
-  @WithFiles()
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        supervisorSignature: { type: 'string', description: 'URL / base64 tanda tangan atasan (opsional)' },
+        supervisorNote:      { type: 'string', description: 'Catatan atasan korban (opsional)' },
+      },
+    },
+  })
+  @ApiResponse({ status: 200, description: 'Status berubah ke COMPLETED, Finding otomatis dibuat jika ada rekomendasi' })
   signBySupervisor(
     @Param('id') id: string,
     @Request() req,
-    @Body() body: Record<string, string>,
-    @UploadedFiles() files: UploadedInvFiles,
+    @Body() body: { supervisorSignature?: string; supervisorNote?: string },
   ) {
     const dto: SignSupervisorDto = {
-      supervisorSignature: fileUrl(files, 'supervisorSignature') ?? body.supervisorSignature,
+      supervisorSignature: body.supervisorSignature,
       supervisorNote:      body.supervisorNote,
     };
     return this.service.signBySupervisor(id, req.user.id, dto);
@@ -248,8 +307,10 @@ export class InvestigationController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Hapus investigasi (admin only)' })
+  @ApiOperation({ summary: 'Hapus investigasi (admin only, hanya status DRAFT)' })
   @ApiParam({ name: 'id', description: 'Investigation ID' })
+  @ApiResponse({ status: 200, description: 'Investigasi berhasil dihapus' })
+  @ApiResponse({ status: 403, description: 'Hanya admin yang bisa menghapus' })
   remove(@Param('id') id: string, @Request() req) {
     return this.service.remove(id, req.user.id);
   }

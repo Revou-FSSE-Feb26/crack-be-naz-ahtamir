@@ -164,11 +164,37 @@ export class AuthService {
   }
 
   // ── Assign supervisor ke user (admin only) ──
-  async assignSupervisor(userId: string, supervisorId: string) {
-    return this.prisma.user.update({
+  async assignSupervisor(userId: string, supervisorId: string | null) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User tidak ditemukan');
+
+    // Jika supervisorId diberikan, pastikan supervisor-nya ada
+    if (supervisorId) {
+      const supervisor = await this.prisma.user.findUnique({ where: { id: supervisorId } });
+      if (!supervisor) throw new NotFoundException('Supervisor tidak ditemukan');
+      // Cegah user assign dirinya sendiri sebagai supervisor
+      if (supervisorId === userId) {
+        throw new BadRequestException('User tidak bisa menjadi supervisor dirinya sendiri');
+      }
+    }
+
+    const updated = await this.prisma.user.update({
       where: { id: userId },
-      data:  { supervisorId },
+      data: { supervisorId: supervisorId ?? null },
+      select: {
+        id: true,
+        idKaryawan: true,
+        nama: true,
+        supervisorId: true,
+      },
     });
+
+    return {
+      message: supervisorId
+        ? 'Supervisor berhasil di-assign'
+        : 'Supervisor berhasil dihapus',
+      user: updated,
+    };
   }
 
   // ── Get semua user (admin only) ──

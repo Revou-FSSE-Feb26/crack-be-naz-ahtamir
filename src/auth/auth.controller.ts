@@ -96,22 +96,32 @@ export class AuthController {
 
   // ── PATCH assign supervisor ───────────────────────────────────────────────
 
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @Patch('users/:userId/supervisor')
-  @ApiOperation({ summary: 'Assign supervisor ke user' })
+  @ApiOperation({ summary: 'Assign supervisor ke user (admin only)' })
   @ApiParam({ name: 'userId', description: 'User UUID' })
   @ApiBody({
     schema: {
       type: 'object',
-      properties: { supervisorId: { type: 'string', example: 'uuid-supervisor' } },
+      properties: {
+        supervisorId: {
+          type: 'string',
+          nullable: true,
+          example: 'uuid-supervisor',
+          description: 'UUID supervisor, atau null untuk hapus assignment',
+        },
+      },
     },
   })
   @ApiResponse({ status: 200, description: 'Supervisor berhasil di-assign' })
   @ApiResponse({ status: 404, description: 'User tidak ditemukan' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   async assignSupervisor(
     @Param('userId') userId: string,
-    @Body() body: { supervisorId: string },
+    @Body() body: { supervisorId: string | null },
   ) {
-    return this.authService.assignSupervisor(userId, body.supervisorId);
+    return this.authService.assignSupervisor(userId, body.supervisorId ?? null);
   }
 
   // ── PATCH deactivate user ─────────────────────────────────────────────────

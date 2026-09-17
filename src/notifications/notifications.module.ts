@@ -1,18 +1,17 @@
 import { Module } from '@nestjs/common';
-import { JwtModule } from '@nestjs/jwt';
 import { NotificationsService } from './notifications.service';
 import { NotificationsController } from './notifications.controller';
-import { RolesGuard } from '../auth/guards/roles.guard';
+import { SeedNotificationsController } from './seed-notifications.controller';
+import { PrismaModule } from '../prisma/prisma.module';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
-    JwtModule.register({
-      secret: process.env.JWT_SECRET || 'your_secret_key',
-      signOptions: { expiresIn: '7d' },
-    }),
+    PrismaModule,
+    AuthModule, // provides JwtModule + JwtAuthGuard with correct secret from ConfigService
   ],
-  providers: [NotificationsService, RolesGuard],
-  controllers: [NotificationsController],
+  providers: [NotificationsService],
+  controllers: [NotificationsController, SeedNotificationsController],
   exports: [NotificationsService],
 })
 export class NotificationsModule {}

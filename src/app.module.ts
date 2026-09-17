@@ -13,6 +13,7 @@ import { DepartmentsModule } from './modules/departments/departments.module';
 import { DocumentsModule } from './modules/documents/documents.module';
 import { DeadlineSchedulerModule } from './scheduler/deadline-scheduler.module';
 import { LicenseSchedulerModule } from './scheduler/license-scheduler.module';
+import { ObjekK3SchedulerModule } from './scheduler/objek-k3-scheduler.module';
 import { InductionModule } from './modules/induction/induction.module';
 import { ObjekK3Module } from './modules/objek-k3/objek-k3.module';
 import { EmergencyDrillModule } from './modules/emergency-drill/emergency-drill.module';
@@ -35,6 +36,7 @@ import { InvestigationModule } from './modules/investigation/investigation.modul
     DocumentsModule,
     DeadlineSchedulerModule,
     LicenseSchedulerModule,
+    ObjekK3SchedulerModule,
     InductionModule,
     ObjekK3Module,
     EmergencyDrillModule,
