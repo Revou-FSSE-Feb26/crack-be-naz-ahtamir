@@ -1,1 +1,0 @@
-SELECT id, id_karyawan, nama, role::text, supervisor_id FROM users ORDER BY role;
