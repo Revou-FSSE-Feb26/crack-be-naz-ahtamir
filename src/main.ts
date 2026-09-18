@@ -45,9 +45,8 @@ async function bootstrap() {
     prefix: '/uploads/',
   });
 
-  // ── Swagger — hanya aktif di luar production ──
-  if (process.env.NODE_ENV !== 'production') {
-    const config = new DocumentBuilder()
+  // ── Swagger — selalu aktif ──
+      const config = new DocumentBuilder()
       .setTitle('SMK3 Enterprise API')
       .setDescription('API untuk sistem manajemen K3 PT. QMB New Energy Materials')
       .setVersion('1.0')
@@ -57,7 +56,7 @@ async function bootstrap() {
     const document = SwaggerModule.createDocument(app, config);
     SwaggerModule.setup('api/docs', app, document);
     logger.log('📚 Swagger docs: http://localhost:3001/api/docs');
-  }
+  
 
   // ── Start Server ──
   const port = process.env.PORT || 3001;
