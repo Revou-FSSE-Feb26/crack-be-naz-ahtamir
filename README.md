@@ -522,7 +522,7 @@ CMD ["node", "dist/main"]
 
 ## Contact
 
-**Project Maintainer:** Naz Ahtamir
+**Project Maintainer:** [Naz Ahtamir](https://github.com/naz-ahtamir)
 **Repository:** [[Project Repository URL](https://github.com/naz-ahtamir/crack-be-naz-ahtamir)]
 
 ---
