@@ -18,6 +18,8 @@ import {
   ApiParam,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
+import { RolesGuard } from '../../auth/guards/roles.guard';
+import { Roles } from '../../auth/decorators/roles.decorator';
 import { DepartmentsService } from './departments.service';
 import { CreateDepartmentDto, UpsertDepartmentsDto } from './dto/create-department.dto';
 
@@ -51,8 +53,11 @@ export class DepartmentsController {
   // ── POST /api/departments ─────────────────────────────────────────────────
 
   @Post()
+  @UseGuards(RolesGuard)
+  @Roles('admin')
   @ApiOperation({ summary: 'Tambah satu departemen baru' })
   @ApiResponse({ status: 201, description: 'Berhasil dibuat' })
+  @ApiResponse({ status: 403, description: 'Forbidden — hanya admin' })
   @ApiResponse({ status: 409, description: 'Kode departemen sudah ada' })
   create(@Body() dto: CreateDepartmentDto) {
     return this.svc.create(dto);
@@ -62,6 +67,8 @@ export class DepartmentsController {
 
   @Post('seed')
   @HttpCode(HttpStatus.OK)
+  @UseGuards(RolesGuard)
+  @Roles('admin')
   @ApiOperation({
     summary: 'Seed / upsert banyak departemen sekaligus',
     description:
@@ -69,6 +76,7 @@ export class DepartmentsController {
       'Kembalikan ringkasan: inserted, skipped, total.',
   })
   @ApiResponse({ status: 200, description: 'Seeder berhasil dijalankan' })
+  @ApiResponse({ status: 403, description: 'Forbidden — hanya admin' })
   seed(@Body() dto: UpsertDepartmentsDto) {
     return this.svc.upsertMany(dto.departments);
   }
@@ -76,9 +84,12 @@ export class DepartmentsController {
   // ── PUT /api/departments/:id ──────────────────────────────────────────────
 
   @Put(':id')
+  @UseGuards(RolesGuard)
+  @Roles('admin')
   @ApiOperation({ summary: 'Update nama/kode departemen' })
   @ApiParam({ name: 'id', description: 'UUID departemen' })
   @ApiResponse({ status: 200, description: 'Berhasil diperbarui' })
+  @ApiResponse({ status: 403, description: 'Forbidden — hanya admin' })
   @ApiResponse({ status: 404, description: 'Tidak ditemukan' })
   update(@Param('id') id: string, @Body() dto: Partial<CreateDepartmentDto>) {
     return this.svc.update(id, dto);
@@ -87,9 +98,12 @@ export class DepartmentsController {
   // ── DELETE /api/departments/:id ───────────────────────────────────────────
 
   @Delete(':id')
+  @UseGuards(RolesGuard)
+  @Roles('admin')
   @ApiOperation({ summary: 'Hapus departemen' })
   @ApiParam({ name: 'id', description: 'UUID departemen' })
   @ApiResponse({ status: 200, description: 'Berhasil dihapus' })
+  @ApiResponse({ status: 403, description: 'Forbidden — hanya admin' })
   @ApiResponse({ status: 404, description: 'Tidak ditemukan' })
   remove(@Param('id') id: string) {
     return this.svc.remove(id);

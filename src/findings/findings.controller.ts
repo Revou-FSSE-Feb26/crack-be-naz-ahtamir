@@ -30,6 +30,8 @@ import {
   ApiBody,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
 import { FindingsService } from './findings.service';
 import { CreateFindingDto } from './dto/create-finding.dto';
 import { UpdateFindingDto } from './dto/update-finding.dto';
@@ -166,9 +168,12 @@ export class FindingsController {
   // ── PUT update ────────────────────────────────────────────────────────────
 
   @Put(':id')
+  @UseGuards(RolesGuard)
+  @Roles('admin', 'supervisor')
   @ApiOperation({ summary: 'Update Finding (title, data)' })
   @ApiParam({ name: 'id', description: 'Finding ID' })
   @ApiResponse({ status: 200, description: 'Finding updated successfully' })
+  @ApiResponse({ status: 403, description: 'Forbidden — hanya admin/supervisor' })
   @ApiResponse({ status: 404, description: 'Finding not found' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async update(
@@ -182,9 +187,12 @@ export class FindingsController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
+  @UseGuards(RolesGuard)
+  @Roles('admin', 'supervisor')
   @ApiOperation({ summary: 'Soft delete Finding by ID' })
   @ApiParam({ name: 'id', description: 'Finding ID' })
   @ApiResponse({ status: 200, description: 'Finding deleted successfully' })
+  @ApiResponse({ status: 403, description: 'Forbidden — hanya admin/supervisor' })
   @ApiResponse({ status: 404, description: 'Finding not found' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async remove(@Param('id') id: string): Promise<{ message: string }> {
@@ -195,9 +203,12 @@ export class FindingsController {
   // ── PATCH status ──────────────────────────────────────────────────────────
 
   @Patch(':id/status')
+  @UseGuards(RolesGuard)
+  @Roles('admin')
   @ApiOperation({ summary: 'Update Finding status with approval info' })
   @ApiParam({ name: 'id', description: 'Finding ID' })
   @ApiResponse({ status: 200, description: 'Status updated successfully' })
+  @ApiResponse({ status: 403, description: 'Forbidden — hanya admin' })
   @ApiResponse({ status: 404, description: 'Finding not found' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async updateStatus(

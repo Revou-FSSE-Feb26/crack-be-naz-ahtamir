@@ -40,8 +40,6 @@ export const DEPARTMENTS_QMB = [
   { code: 'PUSAT-MURNI',   name: 'TERPADU PUSAT PEMURNIAN' },
   { code: 'TRANSPORT',     name: 'TRANSPORTASI DAN MANAJEMEN PERALATAN' },
   { code: 'UMUM',          name: 'UMUM' },
-  // HSE (K3) — departemen utama
-  { code: 'HSE',           name: 'HSE (K3)' },
 ];
 
 async function main() {

@@ -18,6 +18,8 @@ import {
 } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import { RolesGuard } from './guards/roles.guard';
+import { Roles } from './decorators/roles.decorator';
 import { UpdateUserDto, ChangePasswordDto, ForgotPasswordDto, ResetPasswordDto } from './dto/update-user.dto';
 import { BulkCreateUsersRequestDto } from './dto/bulk-create-user.dto';
 
@@ -49,10 +51,15 @@ export class AuthController {
   // ── POST bulk create users ────────────────────────────────────────────────
 
   @Post('bulk-create-users')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Bulk create users dari Excel import' })
   @ApiBody({ type: BulkCreateUsersRequestDto })
   @ApiResponse({ status: 201, description: 'Users berhasil dibuat' })
   @ApiResponse({ status: 400, description: 'Bad request' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden — hanya admin' })
   async bulkCreateUsers(@Body() body: { users: any[] }) {
     return this.authService.bulkCreateUsers(body.users);
   }
@@ -60,8 +67,13 @@ export class AuthController {
   // ── GET semua users ───────────────────────────────────────────────────────
 
   @Get('users')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Get semua user' })
   @ApiResponse({ status: 200, description: 'List semua user' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden — hanya admin' })
   async getAllUsers() {
     return this.authService.getAllUsers();
   }

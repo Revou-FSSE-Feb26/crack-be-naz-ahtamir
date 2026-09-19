@@ -1,105 +1,123 @@
 # HAAMI Backend — Occupational Health and Safety (OHS) Management System
 
-**HAAMI** (Hazard Analysis & Awareness Management Integrated)
+**HAAMI** — Hazard Analysis & Awareness Management Integrated
 
-**Enterprise OHS Management System Backend API**
+> Backend API for a comprehensive enterprise-grade Occupational Health and Safety (OHS) management system, built to streamline hazard identification, risk assessment, compliance tracking, safety training, emergency preparedness, and incident investigation.
 
 ---
 
 ## Table of Contents
 
-- [Overview](#overview)
-- [Architecture](#architecture)
+- [Project Description](#project-description)
 - [Features](#features)
-- [API Documentation](#api-documentation)
-- [Installation](#installation)
+- [Tech Stack](#tech-stack)
+- [Screenshots](#screenshots)
+- [ERD](#erd)
+- [Installation & Usage](#installation--usage)
 - [Environment Configuration](#environment-configuration)
 - [Database Migrations](#database-migrations)
-- [Running the Application](#running-the-application)
-- [Testing](#testing)
+- [API Documentation](#api-documentation)
 - [Project Structure](#project-structure)
 - [API Modules](#api-modules)
-- [Authentication](#authentication)
 - [Deployment](#deployment)
 - [Contact](#contact)
 
 ---
 
-## Overview
+## Project Description
 
-HAAMI (Hazard Analysis & Awareness Management Integrated) is the backend API server for a comprehensive Occupational Health and Safety (OHS) management system.
+HAAMI (Hazard Analysis & Awareness Management Integrated) is the backend API server for a full-stack OHS management platform designed for industrial and enterprise environments.
 
-The system provides a unified platform for hazard identification, risk assessment, compliance management, safety training, emergency preparedness, and incident investigation across organizational operations.
+The system digitizes and centralizes all safety operations — from hazard reporting and risk assessment to incident investigation, compliance tracking, and employee safety induction. It supports multi-role access (Admin, Supervisor, User) with a supervisor-subordinate hierarchy, enabling structured approval workflows and real-time safety monitoring across departments.
 
-HAAMI enables:
-- **Hazard Analysis** - Systematic identification, assessment, and control of workplace hazards
-- **Awareness Management** - Employee training, safety induction, and policy dissemination programs
-- **Compliance Control** - Regulatory compliance tracking and audit-ready documentation
-- **Incident Management** - Complete lifecycle tracking of safety findings, incidents, and investigations
-
----
-
-## Architecture
-
-**Framework:** NestJS (Node.js)  
-**Database:** PostgreSQL  
-**ORM:** Prisma  
-**Authentication:** JWT (JSON Web Tokens)  
-**API Documentation:** Swagger/OpenAPI  
-**File Upload:** Local file storage (public/uploads)  
-**Job Scheduling:** @nestjs/schedule  
+**Core capabilities:**
+- Systematic hazard identification and multi-level risk scoring
+- Complete finding lifecycle — report → review → approve/reject → close
+- Equipment registry with inspection scheduling and automated license expiry alerts
+- Safety induction sessions with QR code-based attendance
+- Emergency drill planning and documentation
+- Incident investigation with root cause analysis and corrective action tracking
+- Policy and document management with acknowledgment/signature tracking
+- Real-time notification system with scheduled reminders
+- Full audit trail on all system actions
 
 ---
 
 ## Features
 
-### Hazard Analysis & Awareness Management (HAAMI Core)
-
-- **Hazard Identification** - Systematic documentation and classification of workplace hazards
-- **Risk Assessment** - Multi-level risk analysis with severity and probability scoring
-- **Control Implementation** - Tracking of preventive and protective measures
-- **Awareness Programs** - Safety induction management with attendance tracking
-- **Policy Dissemination** - Policy management with acknowledgment tracking
-
-### Integrated Control System
-
-- **User Management** - Employee authentication, role-based access (Admin, Supervisor, User), supervisor-subordinate hierarchy
-- **Finding Management** - Report and track safety findings with approval workflow, status tracking, and file attachments
-- **Department Management** - Organizational structure with department codes
-- **Document Control** - Master document list with revision tracking and hierarchical organization
-- **Policy Management** - Document management with signature tracking
-- **Equipment Registry** - Track and manage safety equipment with inspection scheduling
-- **Equipment Inspection History** - Maintain inspection records with status monitoring and alerts
-- **Emergency Drills** - Plan, schedule, and document emergency response drills
-- **Safety Induction** - Manage induction sessions with QR code-based attendance
-- **Incident Investigation** - Document workplace incidents with root cause analysis and corrective action tracking
-- **Notifications** - Real-time notification system for findings, approvals, and deadlines
-- **Audit Logging** - Track all system changes with user action records
-- **Automated Reminders** - Scheduled notifications for deadlines and license expirations
+| Feature | Description |
+|---|---|
+| **Authentication & Authorization** | JWT-based auth with role-based access control (Admin, Supervisor, User) |
+| **User Management** | Employee profiles, role assignment, supervisor hierarchy, activate/deactivate |
+| **Finding Management** | Safety finding reports with photo attachments, approval workflow, and deadline tracking |
+| **Department Management** | Organizational structure with department codes |
+| **Document Control** | Master document list with revision tracking and hierarchical tree view |
+| **K3 Policy Management** | Policy documents with file upload and digital signature tracking |
+| **Equipment Registry (Objek K3)** | Track safety equipment with inspection scheduling and license expiry |
+| **Equipment Inspection History** | Inspection records with status monitoring and overdue alerts |
+| **Emergency Drills** | Plan, schedule, execute, and document emergency response drills |
+| **Safety Induction** | Manage induction sessions with QR code attendance scanning |
+| **Incident Investigation** | Document incidents with root cause analysis, corrective actions, and sign-off |
+| **Notifications** | Real-time in-app notifications for findings, approvals, and deadlines |
+| **Automated Reminders** | Scheduled jobs for deadline reminders and license expiration alerts |
+| **Audit Logging** | Complete change history with user action records |
+| **File Uploads** | Multi-file upload support for findings, policies, investigations, and equipment |
+| **Swagger API Docs** | Interactive API documentation at `/api/docs` |
 
 ---
 
-## API Documentation
+## Tech Stack
 
-The API is fully documented using Swagger (OpenAPI 3.0).
-
-**Swagger UI Access:** `http://localhost:3001/api/docs`
-
-The documentation includes:
-- All available endpoints
-- Request/response schemas
-- Authentication requirements
-- Example requests and responses
+| Layer | Technology |
+|---|---|
+| **Runtime** | Node.js (v18+) |
+| **Framework** | NestJS |
+| **Language** | TypeScript |
+| **Database** | PostgreSQL (v14+) |
+| **ORM** | Prisma |
+| **Authentication** | JWT (JSON Web Tokens) via `@nestjs/jwt` & Passport |
+| **API Documentation** | Swagger / OpenAPI 3.0 |
+| **File Storage** | Local filesystem (`public/uploads`) |
+| **Job Scheduling** | `@nestjs/schedule` |
+| **Validation** | `class-validator` / `class-transformer` |
+| **Testing** | Jest |
 
 ---
 
-## Installation
+## Screenshots
+
+> Screenshots dari aplikasi frontend HAAMI.
+
+### Dashboard & Finding Management
+![Dashboard](docs/screenshots/dashboard.png)
+
+### Safety Induction & QR Attendance
+![Induction](docs/screenshots/induction.png)
+
+### Incident Investigation
+![Investigation](docs/screenshots/investigation.png)
+
+> **Note:** Tambahkan screenshot ke folder `docs/screenshots/` dengan nama file sesuai di atas, atau ganti path-nya dengan path yang sesuai.
+
+---
+
+## ERD
+
+Entity Relationship Diagram dari database HAAMI:
+
+![ERD](docs/ERD.png)
+
+ERD mencakup semua entitas utama: User, Finding, Department, Document, K3Policy, ObjekK3, InspectionHistory, EmergencyDrill, Induction, Investigation, Notification, dan AuditLog.
+
+---
+
+## Installation & Usage
 
 ### Prerequisites
 
-- Node.js (v18+ recommended)
-- PostgreSQL (v14+)
-- npm or yarn
+- Node.js v18+
+- PostgreSQL v14+
+- npm
 
 ### Steps
 
@@ -115,143 +133,117 @@ The documentation includes:
    ```
 
 3. **Configure environment variables**
-   
-   Create a `.env` file in the root directory. See [Environment Configuration](#environment-configuration) below.
+
+   Buat file `.env` di root directory. Lihat bagian [Environment Configuration](#environment-configuration).
 
 4. **Run database migrations**
    ```bash
    npx prisma migrate deploy
    ```
 
-5. **Seed initial data (optional)**
+5. **Seed initial data**
    ```bash
+   # Seed departments
    npm run seed
+
+   # Import employee data from Excel template
    npm run import:karyawan
    ```
+
+6. **Start the development server**
+   ```bash
+   npm run start:dev
+   ```
+
+   Server akan berjalan di `http://localhost:3001`  
+   Swagger UI tersedia di `http://localhost:3001/api/docs`
+
+### Other Commands
+
+```bash
+# Production build
+npm run build
+npm run start:prod
+
+# Debug mode
+npm run start:debug
+
+# Unit tests
+npm run test
+
+# Test with coverage
+npm run test:cov
+
+# E2E tests
+npm run test:e2e
+
+# Generate employee import template
+npm run generate:template
+```
 
 ---
 
 ## Environment Configuration
 
-Create a `.env` file in the root directory with the following variables:
+Buat file `.env` di root directory:
 
 ```env
-# Database Configuration
+# Database
 DB_HOST=localhost
 DB_PORT=5432
 DB_USERNAME=postgres
 DB_PASSWORD=postgres123
 DB_DATABASE=smk3_db
 
-# JWT Configuration
-JWT_SECRET=<generate-a-secure-random-secret>
+# JWT
+JWT_SECRET=<generate-a-secure-random-secret-min-64-chars>
 JWT_EXPIRES_IN=30d
 
-# Server Configuration
+# Server
 PORT=3001
 
-# Prisma (full connection string)
+# Prisma
 DATABASE_URL="postgresql://postgres:postgres123@localhost:5432/smk3_db"
 ```
 
-### Environment Variable Descriptions
-
 | Variable | Description | Example |
-|----------|-------------|---------|
+|---|---|---|
 | `DB_HOST` | PostgreSQL server hostname | `localhost` |
 | `DB_PORT` | PostgreSQL server port | `5432` |
 | `DB_USERNAME` | Database user | `postgres` |
 | `DB_PASSWORD` | Database password | `postgres123` |
 | `DB_DATABASE` | Database name | `smk3_db` |
-| `JWT_SECRET` | Secret key for JWT token generation | 64+ character random string |
-| `JWT_EXPIRES_IN` | JWT token expiration time | `30d`, `7d`, `1h` |
-| `PORT` | Application server port | `3001` |
-| `DATABASE_URL` | Full database connection string | `postgresql://user:pass@host:port/dbname` |
+| `JWT_SECRET` | Secret key for JWT signing | 64+ char random string |
+| `JWT_EXPIRES_IN` | Token expiration | `30d`, `7d`, `1h` |
+| `PORT` | App server port | `3001` |
+| `DATABASE_URL` | Full Prisma connection string | `postgresql://user:pass@host:port/db` |
 
 ---
 
 ## Database Migrations
 
-This project uses Prisma Migrations for database schema management.
-
-### Generate a New Migration
-
 ```bash
+# Create a new migration
 npx prisma migrate dev --name migration_name
-```
 
-### Apply Migrations
-
-```bash
+# Apply migrations (production)
 npx prisma migrate deploy
-```
 
-### Run Seed Scripts
-
-```bash
-# Seed departments
-npm run seed
-
-# Import employee data
-npm run import:karyawan
-
-# Generate document templates
-npm run generate:template
+# Open Prisma Studio (database GUI)
+npx prisma studio
 ```
 
 ---
 
-## Running the Application
+## API Documentation
 
-### Development Mode
+Swagger UI tersedia saat server berjalan:
 
-```bash
-npm run start:dev
-```
+**`http://localhost:3001/api/docs`**
 
-The server will start on `http://localhost:3001` with auto-reload enabled.
+Dokumentasi mencakup semua endpoint, request/response schema, autentikasi, dan contoh request.
 
-### Production Mode
-
-1. **Build the application**
-   ```bash
-   npm run build
-   ```
-
-2. **Run the compiled application**
-   ```bash
-   npm run start:prod
-   ```
-
-### Debug Mode
-
-```bash
-npm run start:debug
-```
-
-This starts the application with Node.js inspector enabled for debugging.
-
----
-
-## Testing
-
-### Unit Tests
-
-```bash
-npm run test
-```
-
-### Test with Coverage
-
-```bash
-npm run test:cov
-```
-
-### E2E Tests
-
-```bash
-npm run test:e2e
-```
+Untuk testing via Postman, import file `SMK3_API_Postman_Collection.json` yang tersedia di root repository.
 
 ---
 
@@ -260,54 +252,35 @@ npm run test:e2e
 ```
 crack-be-naz-ahtamir/
 ├── src/
-│   ├── auth/                    # Authentication module
-│   │   ├── auth.controller.ts
-│   │   ├── auth.service.ts
-│   │   ├── jwt.strategy.ts
-│   │   └── guards/
-│   ├── common/                  # Shared utilities and interceptors
-│   │   ├── filters/
-│   │   ├── interceptors/
-│   │   └── pipes/
+│   ├── auth/                    # Authentication — JWT, guards, decorators
+│   ├── common/                  # Shared filters, interceptors, pipes
 │   ├── findings/                # Finding management module
-│   │   ├── dto/
-│   │   ├── entities/
-│   │   ├── findings.controller.ts
-│   │   └── findings.service.ts
-│   ├── modules/                 # Business domain modules
-│   │   ├── departments/
-│   │   ├── documents/
-│   │   ├── emergency-drill/
-│   │   ├── induction/
-│   │   ├── investigation/
-│   │   ├── k3-policy/
-│   │   └── objek-k3/
-│   ├── notifications/           # Notification management
-│   │   ├── dto/
-│   │   ├── notifications.controller.ts
-│   │   └── notifications.service.ts
-│   ├── prisma/                  # Prisma service and utilities
-│   ├── scheduler/               # Scheduled tasks (reminders, notifications)
-│   ├── seed-departments.ts      # Department seed script
-│   ├── seed.ts                  # Main seed script
+│   ├── notifications/           # Notification system
+│   ├── scheduler/               # Scheduled jobs (deadline & license reminders)
+│   ├── prisma/                  # Prisma service
+│   ├── modules/
+│   │   ├── departments/         # Department management
+│   │   ├── documents/           # Document control
+│   │   ├── emergency-drill/     # Emergency drill management
+│   │   ├── induction/           # Safety induction sessions
+│   │   ├── investigation/       # Incident investigation
+│   │   ├── k3-policy/           # K3 policy management
+│   │   └── objek-k3/            # Equipment registry
 │   ├── app.module.ts
-│   ├── app.controller.ts
-│   └── main.ts                  # Application entry point
+│   └── main.ts
 ├── prisma/
-│   ├── migrations/              # Database migrations
-│   ├── schema.prisma            # Prisma schema definition
-│   └── seed-notifications.ts    # Notification seed script
+│   ├── migrations/              # Prisma migration files
+│   └── schema.prisma            # Database schema
 ├── public/
 │   └── uploads/                 # Uploaded files (statically served)
-├── docs/                        # Documentation
-│   ├── ERD.png
-│   └── smoke_test.md
-├── test/                        # E2E test files
-├── .env                         # Environment variables (not committed)
-├── .gitignore
+├── docs/
+│   ├── ERD.png                  # Entity Relationship Diagram
+│   └── smoke_test.md            # Smoke test documentation
+├── scripts/                     # Utility scripts (seed, import)
+├── test/                        # E2E tests
+├── SMK3_API_Postman_Collection.json
+├── .env
 ├── package.json
-├── nest-cli.json
-├── tsconfig.json
 └── README.md
 ```
 
@@ -315,198 +288,174 @@ crack-be-naz-ahtamir/
 
 ## API Modules
 
-### Authentication (`/api/auth`)
+### Authentication — `/api/auth`
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/auth/login` | POST | User login, returns JWT token |
-| `/api/auth/users` | GET | Get all users |
-| `/api/auth/users/:id` | GET | Get user by UUID |
-| `/api/auth/users/by-id-karyawan/:id` | GET | Get user by employee ID |
-| `/api/auth/users/:id` | PATCH | Update user profile |
-| `/api/auth/users/:id/role` | PATCH | Update user role |
-| `/api/auth/users/:id/supervisor` | PATCH | Assign supervisor |
-| `/api/auth/users/:id/deactivate` | PATCH | Deactivate user |
-| `/api/auth/users/:id/activate` | PATCH | Activate user |
-| `/api/auth/me/change-password` | POST | Change own password |
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/auth/login` | Login, returns JWT token |
+| GET | `/api/auth/users` | Get all users |
+| GET | `/api/auth/users/:id` | Get user by UUID |
+| GET | `/api/auth/users/by-id-karyawan/:id` | Get user by employee ID |
+| PATCH | `/api/auth/users/:id` | Update user profile |
+| PATCH | `/api/auth/users/:id/role` | Update user role |
+| PATCH | `/api/auth/users/:id/supervisor` | Assign supervisor |
+| PATCH | `/api/auth/users/:id/deactivate` | Deactivate user |
+| PATCH | `/api/auth/users/:id/activate` | Activate user |
+| POST | `/api/auth/me/change-password` | Change own password |
 
-### Departments (`/api/departments`)
+### Departments — `/api/departments`
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/departments` | GET | Get all departments |
-| `/api/departments` | POST | Create new department |
-| `/api/departments/seed` | POST | Seed multiple departments |
-| `/api/departments/:id` | GET | Get department details |
-| `/api/departments/:id` | PUT | Update department |
-| `/api/departments/:id` | DELETE | Delete department |
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/departments` | Get all departments |
+| POST | `/api/departments` | Create department |
+| GET | `/api/departments/:id` | Get department by ID |
+| PUT | `/api/departments/:id` | Update department |
+| DELETE | `/api/departments/:id` | Delete department |
 
-### Findings (`/api/smk3-data`)
+### Findings — `/api/smk3-data`
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/smk3-data` | POST | Create new finding |
-| `/api/smk3-data` | GET | Get all findings with filters |
-| `/api/smk3-data/:id` | GET | Get finding details |
-| `/api/smk3-data/:id` | PUT | Update finding |
-| `/api/smk3-data/:id/status` | PATCH | Update finding status (approve/reject) |
-| `/api/smk3-data/:id` | DELETE | Soft delete finding |
-| `/api/smk3-data/deadline-reminders` | GET | Get deadline reminder list |
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/smk3-data` | Create finding |
+| GET | `/api/smk3-data` | Get all findings (with filters) |
+| GET | `/api/smk3-data/:id` | Get finding details |
+| PUT | `/api/smk3-data/:id` | Update finding |
+| PATCH | `/api/smk3-data/:id/status` | Approve / reject finding |
+| DELETE | `/api/smk3-data/:id` | Soft delete finding |
+| GET | `/api/smk3-data/deadline-reminders` | Get deadline reminders list |
 
-### Notifications (`/api/notifications`)
+### Notifications — `/api/notifications`
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/notifications` | GET | Get user notifications |
-| `/api/notifications/unread-count` | GET | Get unread notification count |
-| `/api/notifications/read-all` | PATCH | Mark all as read |
-| `/api/notifications/:id/read` | PATCH | Mark single notification as read |
-| `/api/notifications` | POST | Create notification (admin only) |
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/notifications` | Get user notifications |
+| GET | `/api/notifications/unread-count` | Get unread count |
+| PATCH | `/api/notifications/read-all` | Mark all as read |
+| PATCH | `/api/notifications/:id/read` | Mark single as read |
+| POST | `/api/notifications` | Create notification (admin) |
 
-### Documents (`/api/documents`)
+### Documents — `/api/documents`
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/documents` | GET | Get all documents |
-| `/api/documents` | POST | Create document |
-| `/api/documents/tree` | GET | Get hierarchical document structure |
-| `/api/documents/stats` | GET | Get document statistics |
-| `/api/documents/:id` | GET | Get document details |
-| `/api/documents/:id` | PUT | Update document |
-| `/api/documents/:id` | DELETE | Delete document |
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/documents` | Get all documents |
+| POST | `/api/documents` | Create document |
+| GET | `/api/documents/tree` | Get hierarchical document tree |
+| GET | `/api/documents/stats` | Get document statistics |
+| GET | `/api/documents/:id` | Get document by ID |
+| PUT | `/api/documents/:id` | Update document |
+| DELETE | `/api/documents/:id` | Delete document |
 
-### K3 Policy (`/api/k3-policy`)
+### K3 Policy — `/api/k3-policy`
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/k3-policy` | GET | Get all policies |
-| `/api/k3-policy/:id` | GET | Get policy details |
-| `/api/k3-policy/with-file/:id` | PUT | Update policy with file upload |
-| `/api/k3-policy/with-file` | POST | Create policy with file upload |
-| `/api/k3-policy/:id` | DELETE | Delete policy |
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/k3-policy` | Get all policies |
+| GET | `/api/k3-policy/:id` | Get policy by ID |
+| POST | `/api/k3-policy/with-file` | Create policy with file upload |
+| PUT | `/api/k3-policy/with-file/:id` | Update policy with file upload |
+| DELETE | `/api/k3-policy/:id` | Delete policy |
 
-### Objek K3 (`/api/objek-k3`)
+### Equipment — `/api/objek-k3`
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/objek-k3` | GET | Get all equipment |
-| `/api/objek-k3/:id` | GET | Get equipment details |
-| `/api/objek-k3` | POST | Create equipment |
-| `/api/objek-k3/:id` | PUT | Update equipment |
-| `/api/objek-k3/:id` | DELETE | Delete equipment |
-| `/api/objek-k3/:id/riwayat` | GET | Get inspection history |
-| `/api/objek-k3/:id/riwayat` | POST | Add inspection record |
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/objek-k3` | Get all equipment |
+| POST | `/api/objek-k3` | Create equipment |
+| GET | `/api/objek-k3/:id` | Get equipment by ID |
+| PUT | `/api/objek-k3/:id` | Update equipment |
+| DELETE | `/api/objek-k3/:id` | Delete equipment |
+| GET | `/api/objek-k3/:id/riwayat` | Get inspection history |
+| POST | `/api/objek-k3/:id/riwayat` | Add inspection record |
 
-### Emergency Drill (`/api/emergency-drill`)
+### Emergency Drill — `/api/emergency-drill`
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/emergency-drill` | GET | Get all drills |
-| `/api/emergency-drill/:id` | GET | Get drill details |
-| `/api/emergency-drill` | POST | Create drill |
-| `/api/emergency-drill/:id` | PUT | Update drill plan |
-| `/api/emergency-drill/:id` | DELETE | Delete drill |
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/emergency-drill` | Get all drills |
+| POST | `/api/emergency-drill` | Create drill |
+| GET | `/api/emergency-drill/:id` | Get drill by ID |
+| PUT | `/api/emergency-drill/:id` | Update drill |
+| DELETE | `/api/emergency-drill/:id` | Delete drill |
 
-### Investigation (`/api/investigations`)
+### Safety Induction — `/api/induction`
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/investigations` | GET | Get all investigations |
-| `/api/investigations/:id` | GET | Get investigation details |
-| `/api/investigations` | POST | Create investigation |
-| `/api/investigations/:id` | PUT | Update investigation |
-| `/api/investigations/:id/status` | PATCH | Update investigation status |
-| `/api/investigations/:id/sign-approval` | PATCH | Sign approval |
-| `/api/investigations/:id/logs` | GET | Get investigation logs |
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/induction` | Get all sessions |
+| POST | `/api/induction` | Create session |
+| GET | `/api/induction/:id` | Get session by ID |
+| PUT | `/api/induction/:id` | Update session |
+| DELETE | `/api/induction/:id` | Delete session |
+| POST | `/api/induction/:id/participants` | Add participant |
+| GET | `/api/induction/:id/participants` | Get all participants |
+| PATCH | `/api/induction/:id/participants/scan` | QR code attendance scan |
+| POST | `/api/induction/:id/media` | Upload session media |
+| GET | `/api/induction/:id/media` | Get session media |
+| PATCH | `/api/induction/:id/close` | Close induction session |
 
-### Safety Induction (`/api/induction`)
+### Investigation — `/api/investigations`
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/induction` | GET | Get all induction sessions |
-| `/api/induction/:id` | GET | Get session details |
-| `/api/induction` | POST | Create induction session |
-| `/api/induction/:id` | PUT | Update session |
-| `/api/induction/:id/participants` | POST | Add participant |
-| `/api/induction/:id/participants` | GET | Get all participants |
-| `/api/induction/:id/participants/scan` | PATCH | Scan QR code for attendance |
-| `/api/induction/:id/media` | POST | Upload session media |
-| `/api/induction/:id/media` | GET | Get session media |
-| `/api/induction/:id/close` | PATCH | Close induction session |
-| `/api/induction/:id` | DELETE | Delete session |
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/investigations` | Get all investigations |
+| POST | `/api/investigations` | Create investigation |
+| GET | `/api/investigations/:id` | Get investigation by ID |
+| PUT | `/api/investigations/:id` | Update investigation |
+| PATCH | `/api/investigations/:id/status` | Update status |
+| PATCH | `/api/investigations/:id/sign-approval` | Sign approval |
+| GET | `/api/investigations/:id/logs` | Get investigation logs |
 
 ---
 
 ## Authentication
 
-All API endpoints (except `/api/auth/login`) require authentication via JWT Bearer token.
-
-### Request Header
+Semua endpoint (kecuali `/api/auth/login`) memerlukan JWT Bearer token.
 
 ```
 Authorization: Bearer <your_jwt_token>
 ```
 
-### Login Flow
+**Login flow:**
+1. POST ke `/api/auth/login` dengan employee ID dan password
+2. Response berisi `access_token` dan data user
+3. Sertakan token di header `Authorization` pada setiap request berikutnya
 
-1. Send POST request to `/api/auth/login` with employee ID and password
-2. Response includes `access_token` and user information
-3. Use the token in subsequent requests' Authorization header
-
-### Token Expiration
-
-JWT tokens expire after 30 days by default. The expiration time is configurable via the `JWT_EXPIRES_IN` environment variable.
+Token berlaku selama 30 hari secara default (dapat dikonfigurasi via `JWT_EXPIRES_IN`).
 
 ---
 
 ## Deployment
 
+| | Link |
+|---|---|
+| **Backend API** | https://haami-demo.onrender.com |
+| **Frontend App** | https://your-frontend-deployment-url.com |
+| **API Docs (Swagger)** | https://haami-demo.onrender.com/api/docs |
+
+> Ganti link di atas dengan URL deployment yang sebenarnya.
+
 ### Production Checklist
 
-1. **Environment Setup**
-   - Configure `.env` for production
-   - Set `NODE_ENV=production`
-   - Use strong `JWT_SECRET`
-   - Configure production database connection
+1. Set `NODE_ENV=production` di environment
+2. Gunakan `JWT_SECRET` yang kuat (minimal 64 karakter random)
+3. Jalankan migrasi: `npx prisma migrate deploy`
+4. Build: `npm run build`
+5. Start: `npm run start:prod`
 
-2. **Database**
-   - Run migrations: `npx prisma migrate deploy`
-   - Verify schema is up to date
-
-3. **Build**
-   ```bash
-   npm run build
-   ```
-
-4. **Start Production Server**
-   ```bash
-   npm run start:prod
-   ```
-
-### Docker Deployment (Optional)
-
-Create a `Dockerfile`:
+### Docker (Opsional)
 
 ```dockerfile
 FROM node:18-alpine
-
 WORKDIR /app
-
 COPY package*.json ./
 RUN npm ci --only=production
-
 COPY . .
 RUN npm run build
-
 EXPOSE 3001
 CMD ["node", "dist/main"]
 ```
-
-### Health Check
-
-The server responds to GET requests at `/` with a welcome message.
-
-For container orchestrators, implement a custom health check endpoint if needed.
 
 ---
 

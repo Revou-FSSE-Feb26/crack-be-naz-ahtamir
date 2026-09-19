@@ -26,6 +26,8 @@ import {
 } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
+import { RolesGuard } from '../../auth/guards/roles.guard';
+import { Roles } from '../../auth/decorators/roles.decorator';
 import { DocumentsService, documentDiskStorage, documentFileFilter } from './documents.service';
 import { CreateDocumentDto } from './dto/create-document.dto';
 
@@ -118,8 +120,11 @@ export class DocumentsController {
   // ── POST /api/documents (JSON) ────────────────────────────────────────────
 
   @Post()
+  @UseGuards(RolesGuard)
+  @Roles('admin')
   @ApiOperation({ summary: 'Tambah dokumen baru (JSON, tanpa file)' })
   @ApiResponse({ status: 201, description: 'Berhasil dibuat' })
+  @ApiResponse({ status: 403, description: 'Forbidden — hanya admin' })
   create(@Body() dto: CreateDocumentDto, @Request() req: any) {
     return this.svc.create(dto, req.user.id);
   }
@@ -127,6 +132,8 @@ export class DocumentsController {
   // ── POST /api/documents/with-file (multipart) ─────────────────────────────
 
   @Post('with-file')
+  @UseGuards(RolesGuard)
+  @Roles('admin')
   @ApiOperation({ summary: 'Tambah dokumen + upload file PDF/Word (opsional)' })
   @ApiConsumes('multipart/form-data')
   @ApiBody(MULTIPART_SCHEMA)
@@ -174,9 +181,12 @@ export class DocumentsController {
   // ── PUT /api/documents/:id (JSON) ─────────────────────────────────────────
 
   @Put(':id')
+  @UseGuards(RolesGuard)
+  @Roles('admin')
   @ApiOperation({ summary: 'Update dokumen (JSON, tanpa file)' })
   @ApiParam({ name: 'id', description: 'UUID dokumen' })
   @ApiResponse({ status: 200, description: 'Berhasil diperbarui' })
+  @ApiResponse({ status: 403, description: 'Forbidden — hanya admin' })
   @ApiResponse({ status: 404, description: 'Tidak ditemukan' })
   update(
     @Param('id') id: string,
@@ -188,6 +198,8 @@ export class DocumentsController {
   // ── PUT /api/documents/with-file/:id (multipart) ──────────────────────────
 
   @Put('with-file/:id')
+  @UseGuards(RolesGuard)
+  @Roles('admin')
   @ApiOperation({ summary: 'Update dokumen + ganti file (opsional)' })
   @ApiConsumes('multipart/form-data')
   @ApiBody(MULTIPART_SCHEMA)
@@ -232,9 +244,12 @@ export class DocumentsController {
   // ── DELETE /api/documents/:id ─────────────────────────────────────────────
 
   @Delete(':id')
+  @UseGuards(RolesGuard)
+  @Roles('admin')
   @ApiOperation({ summary: 'Hapus dokumen (children kehilangan parent, tidak ikut terhapus)' })
   @ApiParam({ name: 'id', description: 'UUID dokumen' })
   @ApiResponse({ status: 200, description: 'Berhasil dihapus' })
+  @ApiResponse({ status: 403, description: 'Forbidden — hanya admin' })
   @ApiResponse({ status: 404, description: 'Tidak ditemukan' })
   remove(@Param('id') id: string) {
     return this.svc.remove(id);
