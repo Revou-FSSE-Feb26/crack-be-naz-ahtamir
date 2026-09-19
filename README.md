@@ -19,6 +19,7 @@
 - [API Documentation](#api-documentation)
 - [Project Structure](#project-structure)
 - [API Modules](#api-modules)
+- [Authentication](#authentication)
 - [Deployment](#deployment)
 - [Contact](#contact)
 
@@ -37,7 +38,7 @@ The system digitizes and centralizes all safety operations — from hazard repor
 - Safety induction sessions with QR code-based attendance
 - Emergency drill planning and documentation
 - Incident investigation with root cause analysis and corrective action tracking
-- Policy and document management with acknowledgment/signature tracking
+- Policy and document management with acknowledgment and signature tracking
 - Real-time notification system with scheduled reminders
 - Full audit trail on all system actions
 
@@ -75,7 +76,7 @@ The system digitizes and centralizes all safety operations — from hazard repor
 | **Language** | TypeScript |
 | **Database** | PostgreSQL (v14+) |
 | **ORM** | Prisma |
-| **Authentication** | JWT (JSON Web Tokens) via `@nestjs/jwt` & Passport |
+| **Authentication** | JWT via `@nestjs/jwt` & Passport |
 | **API Documentation** | Swagger / OpenAPI 3.0 |
 | **File Storage** | Local filesystem (`public/uploads`) |
 | **Job Scheduling** | `@nestjs/schedule` |
@@ -86,8 +87,6 @@ The system digitizes and centralizes all safety operations — from hazard repor
 
 ## Screenshots
 
-> Screenshots dari aplikasi frontend HAAMI.
-
 ### Dashboard & Finding Management
 ![Dashboard](docs/screenshots/dashboard.png)
 
@@ -97,17 +96,15 @@ The system digitizes and centralizes all safety operations — from hazard repor
 ### Incident Investigation
 ![Investigation](docs/screenshots/investigation.png)
 
-> **Note:** Tambahkan screenshot ke folder `docs/screenshots/` dengan nama file sesuai di atas, atau ganti path-nya dengan path yang sesuai.
-
 ---
 
 ## ERD
 
-Entity Relationship Diagram dari database HAAMI:
+Entity Relationship Diagram of the HAAMI database:
 
 ![ERD](docs/ERD.png)
 
-ERD mencakup semua entitas utama: User, Finding, Department, Document, K3Policy, ObjekK3, InspectionHistory, EmergencyDrill, Induction, Investigation, Notification, dan AuditLog.
+Covers all core entities: User, Finding, Department, Document, K3Policy, ObjekK3, InspectionHistory, EmergencyDrill, Induction, Investigation, Notification, and AuditLog.
 
 ---
 
@@ -134,7 +131,7 @@ ERD mencakup semua entitas utama: User, Finding, Department, Document, K3Policy,
 
 3. **Configure environment variables**
 
-   Buat file `.env` di root directory. Lihat bagian [Environment Configuration](#environment-configuration).
+   Create a `.env` file in the root directory. See [Environment Configuration](#environment-configuration).
 
 4. **Run database migrations**
    ```bash
@@ -143,10 +140,8 @@ ERD mencakup semua entitas utama: User, Finding, Department, Document, K3Policy,
 
 5. **Seed initial data**
    ```bash
-   # Seed departments
    npm run seed
 
-   # Import employee data from Excel template
    npm run import:karyawan
    ```
 
@@ -155,29 +150,21 @@ ERD mencakup semua entitas utama: User, Finding, Department, Document, K3Policy,
    npm run start:dev
    ```
 
-   Server akan berjalan di `http://localhost:3001`  
-   Swagger UI tersedia di `http://localhost:3001/api/docs`
+   Server runs at `http://localhost:3001`
+   Swagger UI available at `http://localhost:3001/api/docs`
 
 ### Other Commands
 
 ```bash
-# Production build
 npm run build
 npm run start:prod
 
-# Debug mode
 npm run start:debug
 
-# Unit tests
 npm run test
-
-# Test with coverage
 npm run test:cov
-
-# E2E tests
 npm run test:e2e
 
-# Generate employee import template
 npm run generate:template
 ```
 
@@ -185,24 +172,20 @@ npm run generate:template
 
 ## Environment Configuration
 
-Buat file `.env` di root directory:
+Create a `.env` file in the root directory:
 
 ```env
-# Database
 DB_HOST=localhost
 DB_PORT=5432
 DB_USERNAME=postgres
 DB_PASSWORD=postgres123
 DB_DATABASE=smk3_db
 
-# JWT
 JWT_SECRET=<generate-a-secure-random-secret-min-64-chars>
 JWT_EXPIRES_IN=30d
 
-# Server
 PORT=3001
 
-# Prisma
 DATABASE_URL="postgresql://postgres:postgres123@localhost:5432/smk3_db"
 ```
 
@@ -223,13 +206,10 @@ DATABASE_URL="postgresql://postgres:postgres123@localhost:5432/smk3_db"
 ## Database Migrations
 
 ```bash
-# Create a new migration
 npx prisma migrate dev --name migration_name
 
-# Apply migrations (production)
 npx prisma migrate deploy
 
-# Open Prisma Studio (database GUI)
 npx prisma studio
 ```
 
@@ -237,13 +217,13 @@ npx prisma studio
 
 ## API Documentation
 
-Swagger UI tersedia saat server berjalan:
+Swagger UI is available when the server is running:
 
 **`http://localhost:3001/api/docs`**
 
-Dokumentasi mencakup semua endpoint, request/response schema, autentikasi, dan contoh request.
+All endpoints, request/response schemas, authentication, and example requests are documented there.
 
-Untuk testing via Postman, import file `SMK3_API_Postman_Collection.json` yang tersedia di root repository.
+To test via Postman, import `SMK3_API_Postman_Collection.json` from the repository root.
 
 ---
 
@@ -252,36 +232,119 @@ Untuk testing via Postman, import file `SMK3_API_Postman_Collection.json` yang t
 ```
 crack-be-naz-ahtamir/
 ├── src/
-│   ├── auth/                    # Authentication — JWT, guards, decorators
-│   ├── common/                  # Shared filters, interceptors, pipes
-│   ├── findings/                # Finding management module
-│   ├── notifications/           # Notification system
-│   ├── scheduler/               # Scheduled jobs (deadline & license reminders)
-│   ├── prisma/                  # Prisma service
+│   ├── auth/
+│   │   ├── decorators/
+│   │   ├── dto/
+│   │   ├── guards/
+│   │   ├── auth.controller.ts
+│   │   ├── auth.module.ts
+│   │   ├── auth.service.ts
+│   │   ├── jwt-auth.guard.ts
+│   │   └── jwt.strategy.ts
+│   ├── findings/
+│   │   ├── dto/
+│   │   ├── findings.controller.ts
+│   │   ├── findings.module.ts
+│   │   └── findings.service.ts
+│   ├── notifications/
+│   │   ├── dto/
+│   │   ├── notifications.controller.ts
+│   │   ├── notifications.module.ts
+│   │   ├── notifications.service.ts
+│   │   └── seed-notifications.controller.ts
+│   ├── prisma/
+│   │   ├── prisma.module.ts
+│   │   └── prisma.service.ts
+│   ├── scheduler/
+│   │   ├── deadline-scheduler.controller.ts
+│   │   ├── deadline-scheduler.module.ts
+│   │   ├── deadline-scheduler.service.ts
+│   │   ├── license-scheduler.controller.ts
+│   │   ├── license-scheduler.module.ts
+│   │   ├── license-scheduler.service.ts
+│   │   ├── objek-k3-scheduler.controller.ts
+│   │   ├── objek-k3-scheduler.module.ts
+│   │   └── objek-k3-scheduler.service.ts
 │   ├── modules/
-│   │   ├── departments/         # Department management
-│   │   ├── documents/           # Document control
-│   │   ├── emergency-drill/     # Emergency drill management
-│   │   ├── induction/           # Safety induction sessions
-│   │   ├── investigation/       # Incident investigation
-│   │   ├── k3-policy/           # K3 policy management
-│   │   └── objek-k3/            # Equipment registry
+│   │   ├── departments/
+│   │   │   ├── dto/
+│   │   │   ├── departments.controller.ts
+│   │   │   ├── departments.module.ts
+│   │   │   └── departments.service.ts
+│   │   ├── documents/
+│   │   │   ├── dto/
+│   │   │   ├── documents.controller.ts
+│   │   │   ├── documents.module.ts
+│   │   │   └── documents.service.ts
+│   │   ├── emergency-drill/
+│   │   │   ├── dto/
+│   │   │   ├── emergency-drill.controller.ts
+│   │   │   ├── emergency-drill.module.ts
+│   │   │   └── emergency-drill.service.ts
+│   │   ├── induction/
+│   │   │   ├── dto/
+│   │   │   ├── induction.controller.ts
+│   │   │   ├── induction.module.ts
+│   │   │   └── induction.service.ts
+│   │   ├── investigation/
+│   │   │   ├── dto/
+│   │   │   ├── investigation.controller.ts
+│   │   │   ├── investigation.module.ts
+│   │   │   └── investigation.service.ts
+│   │   ├── k3-policy/
+│   │   │   ├── dto/
+│   │   │   ├── k3-policy.controller.ts
+│   │   │   ├── k3-policy.module.ts
+│   │   │   └── k3-policy.service.ts
+│   │   └── objek-k3/
+│   │       ├── dto/
+│   │       ├── objek-k3.controller.ts
+│   │       ├── objek-k3.module.ts
+│   │       └── objek-k3.service.ts
+│   ├── app.controller.ts
 │   ├── app.module.ts
-│   └── main.ts
+│   ├── app.service.ts
+│   ├── main.ts
+│   ├── seed.ts
+│   └── seed-departments.ts
 ├── prisma/
-│   ├── migrations/              # Prisma migration files
-│   └── schema.prisma            # Database schema
+│   ├── migrations/
+│   ├── schema.prisma
+│   └── seed-notifications.ts
+├── scripts/
+│   ├── check-db.js
+│   ├── debug-notif.js
+│   ├── generate-template.js
+│   ├── import-karyawan.js
+│   ├── import-users-from-excel.js
+│   ├── karyawan-template.xlsx
+│   ├── reset-passwords.js
+│   ├── seed-admin.js
+│   ├── seed-departments.js
+│   └── seed-notifications.js
 ├── public/
-│   └── uploads/                 # Uploaded files (statically served)
+│   └── uploads/
 ├── docs/
-│   ├── ERD.png                  # Entity Relationship Diagram
-│   └── smoke_test.md            # Smoke test documentation
-├── scripts/                     # Utility scripts (seed, import)
-├── test/                        # E2E tests
-├── SMK3_API_Postman_Collection.json
+│   ├── screenshots/
+│   │   ├── dashboard.png
+│   │   ├── induction.png
+│   │   └── investigation.png
+│   ├── ERD.png
+│   └── smoke_test.md
+├── test/
+│   ├── app.e2e-spec.ts
+│   └── jest-e2e.json
+├── dist/
 ├── .env
+├── .gitignore
+├── .prettierrc
+├── eslint.config.mjs
+├── nest-cli.json
 ├── package.json
-└── README.md
+├── prisma.config.ts
+├── SMK3_API_Postman_Collection.json
+├── tsconfig.json
+└── tsconfig.build.json
 ```
 
 ---
@@ -321,7 +384,7 @@ crack-be-naz-ahtamir/
 | GET | `/api/smk3-data` | Get all findings (with filters) |
 | GET | `/api/smk3-data/:id` | Get finding details |
 | PUT | `/api/smk3-data/:id` | Update finding |
-| PATCH | `/api/smk3-data/:id/status` | Approve / reject finding |
+| PATCH | `/api/smk3-data/:id/status` | Approve or reject finding |
 | DELETE | `/api/smk3-data/:id` | Soft delete finding |
 | GET | `/api/smk3-data/deadline-reminders` | Get deadline reminders list |
 
@@ -411,18 +474,18 @@ crack-be-naz-ahtamir/
 
 ## Authentication
 
-Semua endpoint (kecuali `/api/auth/login`) memerlukan JWT Bearer token.
+All endpoints except `/api/auth/login` require a JWT Bearer token:
 
 ```
 Authorization: Bearer <your_jwt_token>
 ```
 
 **Login flow:**
-1. POST ke `/api/auth/login` dengan employee ID dan password
-2. Response berisi `access_token` dan data user
-3. Sertakan token di header `Authorization` pada setiap request berikutnya
+1. POST to `/api/auth/login` with employee ID and password
+2. Response contains `access_token` and user data
+3. Include the token in the `Authorization` header on all subsequent requests
 
-Token berlaku selama 30 hari secara default (dapat dikonfigurasi via `JWT_EXPIRES_IN`).
+Token validity defaults to 30 days, configurable via `JWT_EXPIRES_IN`.
 
 ---
 
@@ -431,20 +494,18 @@ Token berlaku selama 30 hari secara default (dapat dikonfigurasi via `JWT_EXPIRE
 | | Link |
 |---|---|
 | **Backend API** | https://haami-demo.onrender.com |
-| **Frontend App** | https://your-frontend-deployment-url.com |
+| **Frontend App** | https://crack-fe-naz-ahtamir.vercel.app |
 | **API Docs (Swagger)** | https://haami-demo.onrender.com/api/docs |
-
-> Ganti link di atas dengan URL deployment yang sebenarnya.
 
 ### Production Checklist
 
-1. Set `NODE_ENV=production` di environment
-2. Gunakan `JWT_SECRET` yang kuat (minimal 64 karakter random)
-3. Jalankan migrasi: `npx prisma migrate deploy`
+1. Set `NODE_ENV=production`
+2. Use a strong `JWT_SECRET` (minimum 64 random characters)
+3. Run migrations: `npx prisma migrate deploy`
 4. Build: `npm run build`
 5. Start: `npm run start:prod`
 
-### Docker (Opsional)
+### Docker
 
 ```dockerfile
 FROM node:18-alpine
@@ -461,8 +522,8 @@ CMD ["node", "dist/main"]
 
 ## Contact
 
-**Project Maintainer:** Naz Ahtamir  
-**Repository:** [Project Repository URL]
+**Project Maintainer:** Naz Ahtamir
+**Repository:** [[Project Repository URL](https://github.com/naz-ahtamir/crack-be-naz-ahtamir)]
 
 ---
 
